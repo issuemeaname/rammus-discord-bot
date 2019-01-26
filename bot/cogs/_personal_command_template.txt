@@ -1,0 +1,5 @@
+# name
+    @commands.command(hidden=True)
+    @bot.checks.is_member(id)
+    async def name(self, ctx):
+        pass

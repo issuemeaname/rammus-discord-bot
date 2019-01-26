@@ -102,3 +102,10 @@ venv.bak/
 
 # mypy
 .mypy_cache/
+
+# Custom / user-inputted
+bot/files/
+reference/
+.ico
+bot/token.py
+bot/cogs/hacked.py
