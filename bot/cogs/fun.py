@@ -6,6 +6,7 @@ from discord.ext import commands
 
 import bot.checks
 from bot.resources import List
+from bot.utils import embed
 
 
 class Fun:
@@ -51,6 +52,14 @@ class Fun:
     @commands.command()
     async def cringe(self, ctx):
         await ctx.send(random.choice(List.cringe))
+
+    @commands.command()
+    async def hug(self, ctx, member: discord.Member):
+        file = random.choice(List.hugs)
+        embed_ = embed(desc=f":hugging: {ctx.author.mention} hugged "
+                            f"{member.mention}!", image=file)
+
+        await ctx.send(embed=embed_, file=file)
 
 
 def setup(bot):
