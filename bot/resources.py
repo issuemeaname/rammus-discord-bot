@@ -1,28 +1,20 @@
-import datetime
-import json
+"""
+Place images, file references and content here.
+
+Feel free to use bot.utils or the discord library to return files if necessary.
+"""
 import os
 
 import discord
 
 
-"""
-Place images, file references and content here.
-
-Feel free to use bot.utils or the discord library to return files if
-necessary.
-"""
-
-"""TODO
-
-[ ] Add FitnessGram Pacer Test paragraph
-"""
 COLOUR = discord.Colour(0).from_rgb(129, 208, 103)
 FOOTER = "issuemeaname | MIT Copyright © 2018"
 PREFIX = ">"
 
 INVITE = "http://bit.ly/RammusInvite"
 SERVER = "https://discord.gg/N2SJy9H"
-GUILD = SERVER
+GUILD = SERVER  # alias
 
 OWNERS = [173225726139564032, 402593497942720512]  # fill with member IDs
 
@@ -34,8 +26,8 @@ PACER_TEST = ("The FitnessGram™ Pacer Test is a multistage aerobic capacity "
               "should be completed each time you hear this sound. [ding] "
               "Remember to run in a straight line, and run as long as "
               "possible. The second time you fail to complete a lap before "
-              "the sound, your test is over. The test will begin on the "
-              "word start. On your mark, get ready, start.")
+              "the sound, your test is over. The test will begin on the word "
+              "start. On your mark, get ready, start.")
 
 
 def _get_cogs():
@@ -54,6 +46,17 @@ def _get_cogs():
 
                 cogs.append(obj_path)
     return sorted(cogs) or None
+
+
+def _get_hugs():
+    path = r"bot\images\hug"
+    hugs = []
+
+    for obj in os.listdir(path):
+        file = discord.File(os.path.join(os.getcwd(), path, obj),
+                            filename="hug.gif")
+        hugs.append(file)
+    return hugs or None
 
 
 class Path:
@@ -78,3 +81,4 @@ class List:
         "8": "eight",
         "9": "nine"
     }
+    hugs = _get_hugs()

@@ -8,11 +8,6 @@ from bot.resources import COLOUR
 from bot.resources import FOOTER
 
 
-"""
-[ ] Add custom TextWrapper variable from owner cog
-"""
-
-
 def clear_screen(_os, post_message: str = None, end: str = None):
     _os = _os.lower()
     commands = {
@@ -27,9 +22,13 @@ def clear_screen(_os, post_message: str = None, end: str = None):
         print(post_message, end=end or "\n")
 
 
-def embed(title=None, desc=None, **kwargs):
-    return discord.Embed(title=title, description=desc, colour=COLOUR,
-                         **kwargs).set_footer(text=FOOTER)
+def embed(title=None, desc=None, image: discord.File = None):
+    embed_ = discord.Embed(title=title, description=desc, colour=COLOUR)
+    embed_.set_author()
+    embed_.set_footer(text=FOOTER)
+    embed_.set_image(url=f"attachment://{image.filename}")
+
+    return embed_
 
 
 def get_tb_message(error, newline="\n"):

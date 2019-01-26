@@ -20,15 +20,15 @@ class Rammus(commands.Bot):
     def __init__(self):
         super().__init__(command_prefix=commands.when_mentioned_or(PREFIX))
         self.file = __file__
-        self.init_time = int(time.time())
         self.remove_command("help")
         self.setup(pre_clear=True)
 
     async def on_minute(self):
+        self.init_time = int(time.time())
+
         while True:
             current_time = int(time.time())
             uptime = datetime.timedelta(seconds=current_time - self.init_time)
-            print(current_time, self.init_time, uptime, sep="\n")
             activity = discord.Game(f"WIP | {uptime}s uptime")
 
             await self.change_presence(activity=activity)
