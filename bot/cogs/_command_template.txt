@@ -1,0 +1,3 @@
+@commands.command()
+    async def name(self, ctx):
+        pass
