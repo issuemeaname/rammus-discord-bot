@@ -6,8 +6,8 @@ from collections import namedtuple
 import discord
 from discord.ext import commands
 
+from bot.prefix import PREFIX
 from bot.resources import OWNERS
-from bot.resources import PREFIX
 from bot.resources import Path
 from bot.token import TOKEN
 from bot.utils import clear_screen

@@ -1,11 +1,10 @@
 import discord
-
 from discord.ext import commands
 
 from bot.API import Datamuse
+from bot.prefix import PREFIX
 from bot.resources import INVITE
 from bot.resources import Path
-from bot.resources import PREFIX
 from bot.resources import SERVER
 from bot.utils import embed
 from bot.utils import wrap
@@ -85,17 +84,16 @@ class Information:
             desc = command.help
             args = {
                 "Category": command.cog_name,
-                "Brief": commands.brief,
-                "Parameters": str(command.clean_params),
-                "Usage": command.usage,
-                "Aliases": str(command.aliases)
+                "Parameters": (", ").join(command.clean_params.keys()),
+                "Usage": f"`{command.usage}`",
+                "Aliases": command.aliases or "None"
             }
 
         embed_ = embed(title, desc)
 
         if args is not None:
             for name, value in args.items():
-                embed_.add_field(name=name, value=value)
+                embed_.add_field(name=name, value=value, inline=False)
 
         await ctx.send(embed=embed_)
 

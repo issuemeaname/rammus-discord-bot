@@ -20,7 +20,11 @@ def is_owner():
         Verify if author is one of the owners
         """
         return ctx.author.id in OWNERS
-    return commands.check(predicate)
+    passed = commands.check(predicate)
+
+    if passed:
+        return passed
+    # raise commands.errors.NotOwner()
 
 
 def delete():

@@ -1,10 +1,11 @@
 import collections
 import importlib
+import inspect
 import json
 import os
 import sys
 
-import discord
+# import discord
 from discord.ext import commands
 
 import bot.checks
@@ -36,6 +37,9 @@ class Owner:
 
         await ctx.send(embed=embed(title, desc))
 
+    @commands.command(hidden=True)
+    @bot.checks.is_owner()
+    @bot.checks.delete()
     async def unload(self, ctx, *cog_names):
         title = (", ").join(map(str.title, cog_names))
         desc = "Successfully unloaded"
@@ -59,7 +63,7 @@ class Owner:
         title = (", ").join(map(str.title, cog_names))
         desc = "Successfully restarted!"
 
-        for cog_name in cog_names:
+        for i, cog_name in enumerate(cog_names):
             if cog_name == "all":
                 cog_name = "cogs"
 
@@ -124,7 +128,11 @@ class Owner:
     @commands.command(name="dir", hidden=True)
     @bot.checks.is_owner()
     async def _dir(self, ctx, *, obj):
-        name = type(obj).__name__
+        try:
+            obj = eval(obj)
+        except NameError:
+            attribs = f"That object does not exist"
+        name = obj.__name__
         attribs = ("\n").join(dir(obj))
 
         await ctx.send(f"**{name}**")
@@ -162,8 +170,13 @@ class Owner:
 
     @commands.command(hidden=True)
     @bot.checks.is_owner()
-    async def reboot(self, ctx):
-        await ctx.send(embed=embed("Rebooting...", "This may take a while."))
+    async def reboot(self, ctx, *args):
+        if "--no-embed" not in args:
+            await ctx.send(embed=embed("Rebooting...",
+                                       "This may take a while."))
+        else:
+            await ctx.send("`Rebooting...\nThis may take a while.`")
+
         await self.bot.log(embed=embed("Status", "Offline"), cause="Close",
                            log=self.bot.logs.status)
 

@@ -10,7 +10,6 @@ import discord
 
 COLOUR = discord.Colour(0).from_rgb(129, 208, 103)
 FOOTER = "issuemeaname | MIT Copyright © 2018"
-PREFIX = ">"
 
 INVITE = "http://bit.ly/RammusInvite"
 SERVER = "https://discord.gg/N2SJy9H"

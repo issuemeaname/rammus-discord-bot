@@ -24,9 +24,10 @@ def clear_screen(_os, post_message: str = None, end: str = None):
 
 def embed(title=None, desc=None, image: discord.File = None):
     embed_ = discord.Embed(title=title, description=desc, colour=COLOUR)
-    embed_.set_author()
     embed_.set_footer(text=FOOTER)
-    embed_.set_image(url=f"attachment://{image.filename}")
+
+    if image is not None:
+        embed_.set_image(url=f"attachment://{image.filename}")
 
     return embed_
 

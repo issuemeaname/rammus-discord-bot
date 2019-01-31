@@ -1,7 +1,6 @@
 import random
 
 import discord
-
 from discord.ext import commands
 
 import bot.checks
@@ -13,11 +12,14 @@ class Personal:
         self.bot = bot
         self.append = " `:^)`"
 
+    async def msg(self, ctx, message):
+        await ctx.send(message + self.append)
+
     # ace
     @commands.command(hidden=True)
     @bot.checks.is_member(155625382748356608)
     async def ace(self, ctx):
-        await ctx.send("nabei look what look" + self.append)
+        await self.msg(ctx, "nabei look what look")
 
     # akey
     @commands.command(hidden=True)
@@ -27,10 +29,10 @@ class Personal:
         if ctx.author.display_name != "ASIAN":
             await ctx.author.edit(nick="ASIAN")
 
-            await ctx.send(":white_check_mark: Successfully changed this "
-                           "Asian's name" + self.append)
+            await self.msg(ctx, ":white_check_mark: Successfully changed this "
+                           "Asian's name")
         else:
-            await ctx.send(":x: No need to change this Asian's name" +
+            await self.msg(ctx, ":x: No need to change this Asian's name" +
                            self.append)
 
     # archy
@@ -43,7 +45,7 @@ class Personal:
         ]
         option = random.choice(options)
 
-        await ctx.send(option + self.append)
+        await self.msg(ctx, option)
 
     # astaris
     @commands.command(hidden=True)
@@ -55,7 +57,7 @@ class Personal:
         ]
         option = random.choice(options)
 
-        await ctx.send(option + self.append)
+        await self.msg(ctx, option)
 
     # azey
     @commands.command(hidden=True)
@@ -67,7 +69,7 @@ class Personal:
         ]
         option = random.choice(options)
 
-        await ctx.send(option + self.append)
+        await self.msg(ctx, option)
 
     # beem
     @commands.command(hidden=True)
@@ -77,9 +79,9 @@ class Personal:
         if ctx.author.display_name != "Baam":
             await ctx.author.edit(nick="Baam")
 
-            await ctx.send("Changed stupid Baam's name" + self.append)
+            await self.msg(ctx, "Changed stupid Baam's name")
         else:
-            await ctx.send("No need to change stupid Baam's name" +
+            await self.msg(ctx, "No need to change stupid Baam's name" +
                            self.append)
 
     # cat
@@ -94,19 +96,33 @@ class Personal:
         ]
         option = random.choice(options)
 
-        await ctx.send(option + self.append)
+        await self.msg(ctx, option)
+
+    # catsis
+    @commands.command(hidden=True)
+    @bot.checks.is_member(440802535301709827)
+    async def catsis(self, ctx):
+        options = [
+            "You got no jams",
+            "Infires",
+            "Jjang jjang man bbong bbong",
+            "Kkaepjang",
+        ]
+        option = random.choice(options)
+
+        await self.msg(ctx, option)
 
     # char
     @commands.command(hidden=True)
     @bot.checks.is_member(473457198207467522)
     async def char(self, ctx):
-        await ctx.send("Char is a lolicon" + self.append)
+        await self.msg(ctx, "Char is a lolicon")
 
     # chun
     @commands.command(hidden=True)
     @bot.checks.is_member(202373732067442690)
     async def chun(self, ctx):
-        await ctx.send("2D girls are better than 3D" + self.append)
+        await self.msg(ctx, "2D girls are better than 3D")
 
     # fcb
     @commands.command(hidden=True)
@@ -119,13 +135,13 @@ class Personal:
             except discord.errors.Forbidden:
                 pass
 
-        await ctx.send("FCB is h0t" + self.append)
+        await self.msg(ctx, "FCB is h0t")
 
     # hunter
     @commands.command(hidden=True)
     @bot.checks.is_member(285908956570976259)
     async def hunter(self, ctx):
-        await ctx.send("hunter is gay lol" + self.append)
+        await self.msg(ctx, "hunter is gay lol")
 
     # jackie
     @commands.command(hidden=True)
@@ -140,7 +156,7 @@ class Personal:
                        rint(1, 100)), 2)
         option = random.choice(options).format(weight)
 
-        await ctx.send(option + self.append)
+        await self.msg(ctx, option)
 
     # kroy
     @commands.command(hidden=True)
@@ -153,9 +169,9 @@ class Personal:
             except discord.errors.Forbidden:
                 pass
 
-            await ctx.send("Changed Kroyburger's name" + self.append)
+            await self.msg(ctx, "Changed Kroyburger's name")
         else:
-            await ctx.send("No need to change Kroyburger's name" + self.append)
+            await self.msg(ctx, "No need to change Kroyburger's name")
 
     # menmis
     @commands.command(hidden=True)
@@ -167,7 +183,7 @@ class Personal:
         ]
         option = random.choice(options)
 
-        await ctx.send(option + "" + self.append)
+        await self.msg(ctx, option + "")
 
     # orcles
     @commands.command(hidden=True)
@@ -177,17 +193,17 @@ class Personal:
         if ctx.author.display_name != ctx.author.name:
             await ctx.author.edit(nick=None)
 
-            await ctx.send("Changed obnoxious Orcles's stupid name" +
+            await self.msg(ctx, "Changed obnoxious Orcles's stupid name" +
                            self.append)
         else:
-            await ctx.send("Can't ~~ stand ~~ change Orcles's name." +
+            await self.msg(ctx, "Can't ~~ stand ~~ change Orcles's name." +
                            self.append)
 
     # Rage
     @commands.command(hidden=True)
     @bot.checks.is_member(447187805106339864)
     async def Rage(self, ctx):
-        await ctx.send("Rage dies faster than light" + self.append)
+        await self.msg(ctx, "Rage dies faster than light")
 
     # rory
     @commands.command(hidden=True)
@@ -203,18 +219,18 @@ class Personal:
         if ctx.author.display_name != option:
             await ctx.author.edit(nick=option)
 
-            await ctx.send(f":white_check_mark: Successfully changed fat "
-                           f"rory's name to \"**{option}**\"" + self.append)
+            await self.msg(ctx, f":white_check_mark: Successfully changed fat "
+                           f"rory's name to \"**{option}**\"")
         else:
-            await ctx.send(f":x: No need to change fat rory's name to "
-                           f"\"**{option}**\"" + self.append)
+            await self.msg(ctx, f":x: No need to change fat rory's name to "
+                           f"\"**{option}**\"")
 
     # sharky
     # sh4rky
     @commands.command(hidden=True)
     @bot.checks.is_member(254759884367724554)
     async def sh4rky(self, ctx):
-        await ctx.send("Below gay" + self.append)
+        await self.msg(ctx, "Below gay")
 
     # traf
     @commands.command(hidden=True)
@@ -227,7 +243,7 @@ class Personal:
         ]
         option = random.choice(options)
 
-        await ctx.send(option + "" + self.append)
+        await self.msg(ctx, option + "")
 
     # xero
     @commands.command(hidden=True)
@@ -237,9 +253,9 @@ class Personal:
         if ctx.author.display_name != ctx.author.name:
             await ctx.author.edit(nick=None)
 
-            await ctx.send("Changed noob Xero's name" + self.append)
+            await self.msg(ctx, "Changed noob Xero's name")
         else:
-            await ctx.send("No need to change *this* loser's name" +
+            await self.msg(ctx, "No need to change *this* loser's name" +
                            self.append)
 
     # zogic
@@ -249,7 +265,7 @@ class Personal:
     async def zogic(self, ctx):
         await ctx.author.edit(nick=None)
 
-        await ctx.send("Don't call me zoggy" + self.append)
+        await self.msg(ctx, "Don't call me zoggy")
 
 
 def setup(bot):

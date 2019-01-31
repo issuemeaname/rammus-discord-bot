@@ -104,7 +104,8 @@ venv.bak/
 .mypy_cache/
 
 # Custom / user-inputted
-bot/files/
+rammus-testing/
 reference/
+bot/files/
 bot/token.py
 .ico

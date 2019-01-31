@@ -1,5 +1,4 @@
 import discord
-
 from discord.ext import commands
 
 
@@ -18,11 +17,6 @@ class ErrorHandler:
 
     async def on_command_error(self, ctx, error):
         message = ctx.message.content
-        print(type(error).__name__, isinstance(error, discord.errors.NotFound),
-              isinstance(error, discord.NotFound))
-        print(type(error).__name__,
-              isinstance(error, discord.errors.Forbidden),
-              isinstance(error, discord.errors.Forbidden))
 
         if self.is_ignored(error):
             return
