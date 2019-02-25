@@ -1,6 +1,6 @@
 from collections import namedtuple
 
-import aiohttp
+import requests
 
 
 class DatamuseAPI:
@@ -9,22 +9,17 @@ class DatamuseAPI:
     def __init__(self):
         self.root = r"https://api.datamuse.com/words"
 
-    async def get_synonyms(self, word):
+    def get_synonyms(self, word):
         synonyms = []
-        json = None
         params = {
             "rel_syn": word
         }
+        request = requests.get(self.root, params=params)
+        json = request.json()
 
-        async with aiohttp.ClientSession() as session:
-            async with session.get(self.root, params=params) as response:
-                json = await response.json()
-
-        for entry in json:
+        for entry in json.items():
             synonym = entry.get("word")
             synonyms.append(synonym)
-
-        print(type(synonyms), synonyms)
 
         return synonyms and sorted(synonyms) or None
 

@@ -4,15 +4,17 @@ Place images, file references and content here.
 Feel free to use bot.utils or the discord library to return files if necessary.
 """
 import os
+from string import ascii_lowercase
 
 import discord
 
 
-COLOUR = discord.Colour(0).from_rgb(129, 208, 103)
+VERSION = "2.2"
+COLOUR = discord.Colour(0).from_rgb(208, 103, 129)
 FOOTER = "issuemeaname | MIT Copyright © 2018"
 
-INVITE = "http://bit.ly/RammusInvite"
-SERVER = "https://discord.gg/N2SJy9H"
+INVITE = "https://tinyurl.com/InviteRammus"
+SERVER = "https://tinyurl.com/RammusServer"
 GUILD = SERVER  # alias
 
 OWNERS = [173225726139564032, 402593497942720512]  # fill with member IDs
@@ -65,6 +67,8 @@ class Path:
 
 class List:
     new = {}
+    hugs = _get_hugs()
+    letters = list(ascii_lowercase)
     cringe = [
         "My dad is builderman and he will ban you!"
     ]
@@ -80,4 +84,57 @@ class List:
         "8": "eight",
         "9": "nine"
     }
-    hugs = _get_hugs()
+    morse = {  # encrypting by default
+        " ": "/",
+        "&": ".-...",
+        "'": ".----.",
+        "@": ".--.-.",
+        ")": "-.--.-",
+        "(": "-.--.",
+        ":": "---...",
+        ",": "--..--",
+        "=": "-...-",
+        "!": "-.-.--",
+        ".": ".-.-.-",
+        "-": "-....-",
+        "+": ".-.-.",
+        "\"": ".-..-.",
+        "?": "..--..",
+        "/": "-..-.",
+        "0": "-----",
+        "1": ".----",
+        "2": "..---",
+        "3": "...--",
+        "4": "....-",
+        "5": ".....",
+        "6": "-....",
+        "7": "--...",
+        "8": "---..",
+        "9": "----.",
+        "A": ".-",
+        "B": "-...",
+        "C": "-.-.",
+        "D": "-..",
+        "E": ".",
+        "F": "..-.",
+        "G": "--.",
+        "H": "....",
+        "I": "..",
+        "J": ".---",
+        "K": "-.-",
+        "L": ".-..",
+        "M": "--",
+        "N": "-.",
+        "O": "---",
+        "P": ".--.",
+        "Q": "--.-",
+        "R": ".-.",
+        "S": "...",
+        "T": "-",
+        "U": "..-",
+        "V": "...-",
+        "W": ".--",
+        "X": "-..-",
+        "Y": "-.--",
+        "Z": "--.."
+    }

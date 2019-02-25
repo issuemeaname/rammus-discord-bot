@@ -1,5 +1,7 @@
 import random
+from typing import Union
 
+import discord
 from discord.ext import commands
 
 from bot.utils import embed
@@ -18,6 +20,11 @@ class Random:
     @commands.command()
     async def randomcase(self, ctx, *, message):
         randomcase = ""
+        file = None
+
+        if message.endswith(" --image"):
+            message = message.replace(" --image", "")
+            file = discord.File(r"bot\images\randomcase\image.jpg")
 
         for char in message:
             if random.random() <= 0.50:
@@ -25,13 +32,15 @@ class Random:
             else:
                 randomcase += char
 
-        await ctx.send(randomcase)
+        await ctx.send(randomcase, file=file)
 
     @commands.command()
-    async def roll(self, ctx, dice_sides: int = 6):
+    async def roll(self, ctx, dice_sides: Union[int, float] = 6):
         critted = ""
         unlucky = ""
 
+        if type(dice_sides) is float:
+            dice_sides = int(dice_sides)
         if dice_sides <= 1:
             dice_sides = 6
 

@@ -61,7 +61,8 @@ class Rammus(commands.Bot):
     @commands.bot_has_permissions(send_messages=True)
     @commands.guild_only()
     async def before_invoke(self, ctx):
-        pass
+        if ctx.command:
+            print(ctx.command.qualified_name)
 
     async def on_connect(self):
         self.app_info = await self.application_info()

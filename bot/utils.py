@@ -1,6 +1,7 @@
 import os
 import textwrap
 import traceback
+from typing import Union
 
 import discord
 
@@ -22,11 +23,13 @@ def clear_screen(_os, post_message: str = None, end: str = None):
         print(post_message, end=end or "\n")
 
 
-def embed(title=None, desc=None, image: discord.File = None):
+def embed(title=None, desc=None, image: Union[discord.File, str] = None):
     embed_ = discord.Embed(title=title, description=desc, colour=COLOUR)
     embed_.set_footer(text=FOOTER)
 
-    if image is not None:
+    if isinstance(image, str):
+        embed_.set_image(url=image)
+    elif isinstance(image, discord.File):
         embed_.set_image(url=f"attachment://{image.filename}")
 
     return embed_

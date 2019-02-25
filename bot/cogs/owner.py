@@ -71,11 +71,9 @@ class Owner:
                 except Exception as e:
                     desc = (f"Restarting failed\n\n"
                             f"{type(e).__name__}: {e}")
-                    break
-                else:
+                finally:
                     break
             else:
-                cog_name = cog_name == "info" and "information" or cog_name
                 cog = f"bot.cogs.{cog_name}"
 
                 try:
@@ -103,6 +101,26 @@ class Owner:
             return
         else:
             await ctx.send(f"{member.mention} DJ said \"{message}\"")
+
+    @commands.command(aliases=["mad"], hidden=True)
+    @bot.checks.in_guild(321818127539109907)
+    @bot.checks.is_owner()
+    async def pissed(self, ctx):
+        name = ctx.author.display_name
+        title = "**DJ** is pissed"
+        text = "Do not bother him."
+
+        if name.startswith("[PISSED]"):
+            title = "**DJ** is no longer pissed"
+            text = "You can bother him again."
+
+            await ctx.author.edit(nick=name.replace("[PISSED]", ""))
+        else:
+            name = f"[PISSED] {name}"
+
+            await ctx.author.edit(nick=name[:32])
+
+        await ctx.send(embed=embed(title, text))
 
     @commands.command(name="cls", aliases=["clear"], hidden=True)
     @bot.checks.is_owner()

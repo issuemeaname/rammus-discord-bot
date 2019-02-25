@@ -65,7 +65,6 @@ class Moderation:
         finally:
             message = await ctx.send(f"Successfully purged `{number}` "
                                      f"{messages}")
-
             await asyncio.sleep(5)
             await message.delete()
 

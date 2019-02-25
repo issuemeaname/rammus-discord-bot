@@ -1,3 +1,5 @@
+from typing import Union
+
 import discord
 from discord.ext import commands
 
@@ -6,6 +8,7 @@ from bot.prefix import PREFIX
 from bot.resources import INVITE
 from bot.resources import Path
 from bot.resources import SERVER
+from bot.resources import VERSION
 from bot.utils import embed
 from bot.utils import wrap
 
@@ -31,6 +34,13 @@ class Information:
             if command.name == queried:
                 return command
         return None
+
+    @commands.command()
+    async def version(self, ctx):
+        title = "Rammus"
+        text = f"Version: **{VERSION}**"
+
+        await ctx.send(embed=embed(title, text))
 
     @commands.command()
     async def prefix(self, ctx):
@@ -117,17 +127,28 @@ class Information:
         await ctx.send(member.id)
 
     @commands.command()
-    async def avatar(self, ctx, member: discord.Member = None):
-        member = member or ctx.author
+    async def avatar(self, ctx, member: Union[discord.Member, str] = None):
+        image = None
 
-        await ctx.send(embed=embed().set_image(url=member.avatar_url))
+        if isinstance(member, str):
+            if member.lower() in ["guild", "server"]:
+                image = ctx.guild.icon_url_as()
+        else:
+            member = member or ctx.author
+            image = member.avatar_url_as()
+
+        await ctx.send(embed=embed(image=image))
 
     @commands.command(aliases=["thesaurus"])
     async def synonym(self, ctx, word):
         word = word.lower()
-        synonyms = (", ").join(Datamuse.get_synonyms(word))
+        synonyms = await Datamuse.get_synonyms(word)
+        embed_ = embed(desc="Thesaurus")
 
-        await ctx.send(f"Synonyms for {word}: **{synonyms}**")
+        embed_.add_field(name="Word", value=word, inline=False)
+        embed_.add_field(name="Synonyms", value=(", ").join(synonyms))
+
+        await ctx.send(embed=embed_)
 
     @commands.command()
     async def whois(self, ctx, member: discord.Member = None):
