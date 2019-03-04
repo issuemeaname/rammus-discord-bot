@@ -9,11 +9,11 @@ from bot.resources import INVITE
 from bot.resources import Path
 from bot.resources import SERVER
 from bot.resources import VERSION
-from bot.utils import embed
+from bot.utils import create_embed
 from bot.utils import wrap
 
 
-class Information:
+class Information(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
@@ -40,7 +40,7 @@ class Information:
         title = "Rammus"
         text = f"Version: **{VERSION}**"
 
-        await ctx.send(embed=embed(title, text))
+        await ctx.send(embed=create_embed(title, text))
 
     @commands.command()
     async def prefix(self, ctx):
@@ -99,13 +99,13 @@ class Information:
                 "Aliases": command.aliases or "None"
             }
 
-        embed_ = embed(title, desc)
+        embed = create_embed(title, desc)
 
         if args is not None:
             for name, value in args.items():
-                embed_.add_field(name=name, value=value, inline=False)
+                embed.add_field(name=name, value=value, inline=False)
 
-        await ctx.send(embed=embed_)
+        await ctx.send(embed=embed)
 
     @commands.command()
     async def creator(self, ctx):
@@ -113,11 +113,11 @@ class Information:
 
     @commands.command(aliases=["guild"])
     async def server(self, ctx):
-        await ctx.send(SERVER + " :heart:")
+        await ctx.send(embed=create_embed("Server", f"{SERVER} :green_heart:"))
 
     @commands.command()
     async def invite(self, ctx):
-        await ctx.send(INVITE + " :heart:")
+        await ctx.send(embed=create_embed("Invite", f"{INVITE} :green_heart:"))
 
     @commands.command()
     async def id(self, ctx, member: discord.Member = None):
@@ -137,29 +137,71 @@ class Information:
             member = member or ctx.author
             image = member.avatar_url_as()
 
-        await ctx.send(embed=embed(image=image))
+        await ctx.send(embed=create_embed(image=image))
 
     @commands.command(aliases=["thesaurus"])
     async def synonym(self, ctx, word):
         word = word.lower()
         synonyms = await Datamuse.get_synonyms(word)
-        embed_ = embed(desc="Thesaurus")
+        embed = create_embed(desc="Thesaurus")
 
-        embed_.add_field(name="Word", value=word, inline=False)
-        embed_.add_field(name="Synonyms", value=(", ").join(synonyms))
+        embed.add_field(name="Word", value=word, inline=False)
+        embed.add_field(name="Synonyms", value=(", ").join(synonyms))
 
-        await ctx.send(embed=embed_)
+        await ctx.send(embed=embed)
 
     @commands.command()
-    async def whois(self, ctx, member: discord.Member = None):
+    async def info(self, ctx, member: Union[discord.Member, str] = None):
         member = member or ctx.author
-        roles = (", ").join(map(str, member.roles))
-        embed_ = embed(str(member), member.mention)
+        embed = None
+        desc = None
+        image = None
+        fields = None
+        author = None
+        member_format = "%a %d %b %Y %I:%M:%S %p"
+        guild_format = "%m/%d/%y %I:%M:%S %p"
 
-        embed_.add_field(name="Status", value=str(member.status).title())
-        embed_.add_field(name="Joined", value=str(member.joined_at))
-        embed_.add_field(name="Registered", value=str(member.created_at))
-        embed_.add_field(name="Roles", value=roles)
+        if type(member) is discord.Member:
+            desc = ctx.guild.name
+            author = str(member)
+            image = member.avatar_url
+            roles = [r.mention for r in member.roles
+                     if r.is_default() is False]
+            fields = {
+                "ID": f"`{member.id}`",
+                "Status": str(member.status),
+                "Mobile": member.is_on_mobile() and "Yes" or "No",
+                "Joined": member.joined_at.strftime(member_format),
+                "Registered": member.created_at.strftime(member_format),
+                f"Roles `({len(roles)})`": (" ").join(roles)
+            }
+        elif type(member) is str and member.upper() in ["GUILD", "SERVER"]:
+            guild = ctx.guild
+            desc = f"Owned by {guild.owner}"
+            author = guild.name
+            image = guild.icon_url
+            fields = {
+                "ID": f"`{guild.id}`",
+                "Owner": guild.owner.mention,
+                "Region": f"**{str(guild.region).upper()}**",
+                "Created": guild.created_at.strftime(guild_format),
+                "Members": guild.member_count,
+                "Emojis": len(guild.emojis),
+                "Channels": f"{len(guild.channels)} "
+                            f"(**{len(guild.text_channels)}** Text, "
+                            f"**{len(guild.voice_channels)}** VCs)",
+                "Categories": len(guild.categories),
+                "Roles": len(guild.roles) - 1
+            }
+
+        embed = create_embed(desc=desc)
+        embed.set_author(name=author, icon_url=image)
+        embed.set_thumbnail(url=image)
+
+        for name, value in fields.items():
+            embed.add_field(name=name, value=value)
+
+        await ctx.send(embed=embed)
 
 
 def setup(bot):

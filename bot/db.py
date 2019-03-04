@@ -2,6 +2,9 @@ import atexit
 import datetime
 import json
 import os
+import time
+
+import discord
 
 
 class AskDatabase:
@@ -67,11 +70,87 @@ class AskDatabase:
             return True
 
 
+class ModDatabase:
+    def __init__(self):
+        self.path = "bot/files/warns.json"
+        self.get_warns = self.get_warnings  # alias
+
+        with open(self.path, "r") as db:
+            self._db = json.load(db)
+
+    def save(self):
+        with open(self.path, "w") as db:
+            json.dump(self._db, db, indent=4)
+
+    def get_guild(self, guild_id):
+        guild_id = str(guild_id)
+        default = {
+            "mods": [],
+            "members": {}
+        }
+
+        return self._db.setdefault(guild_id, default)
+
+    def get_member(self, guild_id, member_id):
+        member_id = str(member_id)
+        guild = self.get_guild(member_id)
+        members = guild.get("members")
+
+        return members.setdefault(member_id, [])
+
+    def get_mods(self, guild_id):
+        guild = self.get_guild(guild_id)
+
+        return guild.get("mods")
+
+    def get_warnings(self, member: discord.Member):
+        member_warnings = self.get_member(member.guild.id, member.id)
+        self.save()
+
+        return member_warnings  # return member's list of warnings
+
+    def add_warn(self, member: discord.Member, moderator: discord.Member,
+                 reason):
+        member_warnings = self.get_member(member.guild.id, member.id)
+        warning = {
+            "moderator": moderator.id,
+            "reason": reason,
+            "created": int(time.time())
+        }
+        member_warnings.append(warning)
+        self.save()
+
+        return warning  # return issued warning
+
+    def clear_warns(self, member: discord.Member):
+        member_warnings = self.get_member(member.guild.id, member.id)
+        member_warnings.clear()
+        self.save()
+
+        return member_warnings  # return new list of warnings
+
+    def add_mod(self, member: discord.Member):
+        mods = self.get_mods(member.guild.id)
+        mods.append(member.id)
+        self.save()
+
+        return mods
+
+    def del_mod(self, member: discord.Member):
+        mods = self.get_mods(member.guild.id)
+        mods.remove(member.id)
+        self.save()
+
+        return mods
+
+
 Ask = AskDatabase()
+Mod = ModDatabase()
 
 
 @atexit.register
 def save_all():
     Ask.save()
+    Mod.save()
 
     print("Saved all databases")

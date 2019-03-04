@@ -1,5 +1,6 @@
 import asyncio
 import datetime
+import random
 import time
 from collections import namedtuple
 
@@ -7,11 +8,12 @@ import discord
 from discord.ext import commands
 
 from bot.prefix import PREFIX
+from bot.resources import List
 from bot.resources import OWNERS
 from bot.resources import Path
 from bot.token import TOKEN
 from bot.utils import clear_screen
-from bot.utils import embed
+from bot.utils import create_embed
 from bot.utils import get_tb_message
 
 
@@ -29,7 +31,8 @@ class Rammus(commands.Bot):
         while True:
             current_time = int(time.time())
             uptime = datetime.timedelta(seconds=current_time - self.init_time)
-            activity = discord.Game(f"WIP | {uptime}s uptime")
+            status = random.choice(List.statuses)
+            activity = discord.Game(f"{status} | {uptime}s uptime")
 
             await self.change_presence(activity=activity)
             await asyncio.sleep(60)
@@ -58,12 +61,6 @@ class Rammus(commands.Bot):
         await log.send(message, embed=embed)
 
     # discord event methods
-    @commands.bot_has_permissions(send_messages=True)
-    @commands.guild_only()
-    async def before_invoke(self, ctx):
-        if ctx.command:
-            print(ctx.command.qualified_name)
-
     async def on_connect(self):
         self.app_info = await self.application_info()
         self.owner = self.app_info.owner
@@ -82,10 +79,22 @@ class Rammus(commands.Bot):
 
         # visuals
         clear_screen("windows", post_message=f"{self.user.name}\n")
-        await self.log(embed=embed("Status", "Online"), log=self.logs.status)
+        await self.log(embed=create_embed("Status", "Online"),
+                       log=self.logs.status)
 
 
 bot = Rammus()
+
+
+@bot.check
+async def pre_command(ctx):
+    if ctx.guild is not None:
+        return ctx.guild.me.permissions_in(ctx.channel).send_messages
+
+    await ctx.send(f"You must use `>{ctx.command.name}` in "
+                   f"a server that both you and Rammus are "
+                   f"in!")
+    return False
 
 if __name__ == "__main__":
     bot.run(TOKEN, reconnect=True)

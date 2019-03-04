@@ -1,3 +1,10 @@
+"""
+This is a cog used for personal commands. For now they exist for people I know
+but they will be removed shortly, as they hold no other use to the community
+or other users of Rammus. Again, this is temporary and will be removed shortly.
+
+Thank you for reading
+"""
 import random
 
 import discord
@@ -7,7 +14,7 @@ import bot.checks
 from bot.resources import PACER_TEST
 
 
-class Personal:
+class Personal(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.append = " `:^)`"
@@ -19,7 +26,7 @@ class Personal:
     @commands.command(hidden=True)
     @bot.checks.is_member(155625382748356608)
     async def ace(self, ctx):
-        await self.msg(ctx, "nabei look what look")
+        await self.msg(ctx, "is it because im chinese?")
 
     # akey
     @commands.command(hidden=True)
@@ -120,9 +127,19 @@ class Personal:
 
     # chun
     @commands.command(hidden=True)
+    @commands.bot_has_permissions(manage_nicknames=True)
     @bot.checks.is_member(202373732067442690)
     async def chun(self, ctx):
-        await self.msg(ctx, "2D girls are better than 3D")
+        options = [
+            "Immature Chun",
+            "Mature Chun",
+            "ChunDaBooly",
+            "ChunHelpful"
+        ]
+        option = random.choice(options)
+
+        await ctx.author.edit(nick=option)
+        await self.msg(ctx, "Changed Chun's name")
 
     # fcb
     @commands.command(hidden=True)
@@ -157,6 +174,12 @@ class Personal:
         option = random.choice(options).format(weight)
 
         await self.msg(ctx, option)
+
+    # joe
+    @commands.command(hidden=True)
+    @bot.checks.is_member(433662145268547585)
+    async def joe(self, ctx):
+        await self.msg(ctx, "The Cool One")
 
     # kroy
     @commands.command(hidden=True)

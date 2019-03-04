@@ -4,10 +4,10 @@ from typing import Union
 import discord
 from discord.ext import commands
 
-from bot.utils import embed
+from bot.utils import create_embed
 
 
-class Random:
+class Random(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
@@ -54,7 +54,7 @@ class Random:
         title = f"You rolled a {dice_sides}-sided dice."
         desc = f"{critted} A {rolled} was rolled! {unlucky}"
 
-        await ctx.send(embed=embed(title, desc))
+        await ctx.send(embed=create_embed(title, desc))
 
 
 def setup(bot):

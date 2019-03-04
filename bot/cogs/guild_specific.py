@@ -5,7 +5,7 @@ import bot.checks
 from bot.utils import wrap
 
 
-class GuildSpecific:
+class GuildSpecific(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 

@@ -4,6 +4,14 @@ from discord.ext import commands
 from bot.resources import OWNERS
 
 
+def delete():
+    async def predicate(ctx):
+        await ctx.message.delete()
+
+        return True
+    return commands.check(predicate)
+
+
 def is_member(*members):
     def predicate(ctx):
         """
@@ -30,17 +38,17 @@ def is_owner():
         Verify if author is one of the owners
         """
         return ctx.author.id in OWNERS
-    passed = commands.check(predicate)
-
-    if passed:
-        return passed
-    # raise commands.errors.NotOwner()
+    return commands.check(predicate)
 
 
-def delete():
-    async def predicate(ctx):
-        if isinstance(ctx.channel, discord.TextChannel):
-            await ctx.message.delete()
+def both_have_perms(**kwargs):
+    def predicate(ctx):
+        ctx.author.permissions_in(ctx.channel) \
+           and commands.bot_has_permissions(**kwargs)
+    return commands.check(predicate)
 
-        return True
+
+def mod_command():
+    def predicate(_):
+        return commands.has_permissions(administrator=True)
     return commands.check(predicate)

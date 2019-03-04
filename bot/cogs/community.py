@@ -2,10 +2,10 @@
 from discord.ext import commands
 
 from bot.db import Ask
-from bot.utils import embed
+from bot.utils import create_embed
 
 
-class Community:
+class Community(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
@@ -44,14 +44,14 @@ class Community:
         else:
             answer_given = entry.get("answer")
 
-        embed_ = embed(title, desc)
+        embed = create_embed(title, desc)
 
         if answer_given is not False:
             answer = entry.get("answer")
 
-            embed_.add_field(name="Answer", value=f"\"{answer}\"")
+            embed.add_field(name="Answer", value=f"\"{answer}\"")
 
-        await ctx.send(embed=embed_)
+        await ctx.send(embed=embed)
 
     @commands.command()
     @commands.cooldown(rate=1, per=30, type=commands.BucketType.user)
@@ -79,7 +79,7 @@ class Community:
         elif Ask.add_answer_to(entry, answer) is False:
             title = "Failed to add answer"
 
-        await ctx.send(embed=embed(title, desc))
+        await ctx.send(embed=create_embed(title, desc))
 
 
 def setup(bot):

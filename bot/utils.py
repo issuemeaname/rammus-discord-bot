@@ -23,16 +23,21 @@ def clear_screen(_os, post_message: str = None, end: str = None):
         print(post_message, end=end or "\n")
 
 
-def embed(title=None, desc=None, image: Union[discord.File, str] = None):
-    embed_ = discord.Embed(title=title, description=desc, colour=COLOUR)
-    embed_.set_footer(text=FOOTER)
+def create_embed(title=None, desc=None, fields: dict = None,
+                 image: Union[discord.File, str] = None):
+    embed = discord.Embed(title=title, description=desc, colour=COLOUR)
+    embed.set_footer(text=FOOTER)
 
-    if isinstance(image, str):
-        embed_.set_image(url=image)
-    elif isinstance(image, discord.File):
-        embed_.set_image(url=f"attachment://{image.filename}")
+    if fields is not None:
+        for name, value in fields.items():
+            embed.add_field(name=name, value=value, inline=False)
 
-    return embed_
+    if type(image) is str:
+        embed.set_image(url=image)
+    elif type(image) is discord.File:
+        embed.set_image(url=f"attachment://{image.filename}")
+
+    return embed
 
 
 def get_tb_message(error, newline="\n"):

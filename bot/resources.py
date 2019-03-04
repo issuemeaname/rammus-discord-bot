@@ -9,15 +9,15 @@ from string import ascii_lowercase
 import discord
 
 
-VERSION = "2.2"
-COLOUR = discord.Colour(0).from_rgb(208, 103, 129)
+VERSION = "5.0"
+COLOUR = discord.Colour(0).from_rgb(129, 208, 103)
 FOOTER = "issuemeaname | MIT Copyright © 2018"
 
 INVITE = "https://tinyurl.com/InviteRammus"
 SERVER = "https://tinyurl.com/RammusServer"
 GUILD = SERVER  # alias
 
-OWNERS = [173225726139564032, 402593497942720512]  # fill with member IDs
+OWNERS = [173225726139564032, 202373732067442690]  # fill with member IDs
 
 PACER_TEST = ("The FitnessGram™ Pacer Test is a multistage aerobic capacity "
               "test that progressively gets more difficult as it continues. "
@@ -71,6 +71,10 @@ class List:
     letters = list(ascii_lowercase)
     cringe = [
         "My dad is builderman and he will ban you!"
+    ]
+    statuses = [
+        "Facerolling",
+        "AP Rammus Nuke"
     ]
     digits = {
         "0": "zero",

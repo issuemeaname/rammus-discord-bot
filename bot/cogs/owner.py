@@ -9,17 +9,17 @@ from discord.ext import commands
 
 import bot.checks
 from bot.utils import clear_screen
-from bot.utils import embed
+from bot.utils import create_embed
 from bot.utils import wrap
 
 
-class Owner:
+class Owner(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
     @commands.command(hidden=True)
-    @bot.checks.is_owner()
     @bot.checks.delete()
+    @bot.checks.is_owner()
     async def load(self, ctx, *cog_names):
         title = (", ").join(map(str.title, cog_names))
         desc = "Successfully loaded"
@@ -34,7 +34,7 @@ class Owner:
                         f"{type(e).__name__}: {e}")
                 break
 
-        await ctx.send(embed=embed(title, desc))
+        await ctx.send(embed=create_embed(title, desc))
 
     @commands.command(hidden=True)
     @bot.checks.is_owner()
@@ -53,9 +53,9 @@ class Owner:
                         f"{type(e).__name__}: {e}")
                 break
 
-        await ctx.send(embed=embed(title, desc))
+        await ctx.send(embed=create_embed(title, desc))
 
-    @commands.command(hidden=True)
+    @commands.command(hidden=True, aliases=["r"])
     @bot.checks.is_owner()
     @bot.checks.delete()
     async def reload(self, ctx, *cog_names):
@@ -84,63 +84,13 @@ class Owner:
                             f"{type(e).__name__}: {e}")
                     break
 
-        await ctx.send(embed=embed(title, desc))
-
-    @commands.command(aliases=["mention"], hidden=True)
-    @bot.checks.is_owner()
-    async def ping(self, ctx, name, *, message=None):
-        name = name.lower()
-        message = message or "DJ wants you for a sec"
-        members = {
-            "reborn": self.bot.get_user(429605988530782208)
-        }
-
-        try:
-            member = members[name]
-        except KeyError:
-            return
-        else:
-            await ctx.send(f"{member.mention} DJ said \"{message}\"")
-
-    @commands.command(aliases=["mad"], hidden=True)
-    @bot.checks.in_guild(321818127539109907)
-    @bot.checks.is_owner()
-    async def pissed(self, ctx):
-        name = ctx.author.display_name
-        title = "**DJ** is pissed"
-        text = "Do not bother him."
-
-        if name.startswith("[PISSED]"):
-            title = "**DJ** is no longer pissed"
-            text = "You can bother him again."
-
-            await ctx.author.edit(nick=name.replace("[PISSED]", ""))
-        else:
-            name = f"[PISSED] {name}"
-
-            await ctx.author.edit(nick=name[:32])
-
-        await ctx.send(embed=embed(title, text))
+        await ctx.send(embed=create_embed(title, desc))
 
     @commands.command(name="cls", aliases=["clear"], hidden=True)
     @bot.checks.is_owner()
     @bot.checks.delete()
     async def _cls(self, ctx):
         clear_screen("windows", "Rammus", "\n\n")
-
-    @commands.command(name="import", hidden=True)
-    @bot.checks.is_owner()
-    async def _import(self, ctx, module_name):
-        title = module_name.title()
-        desc = "Successfully imported!"
-
-        try:
-            globals()[module_name] = importlib.import_module(module_name)
-        except Exception as e:
-            desc = (f"Importing failed\n\n"
-                    f"{type(e).__name__} - {e}")
-
-        await ctx.send(embed=embed(title, desc))
 
     @commands.command(name="dir", hidden=True)
     @bot.checks.is_owner()
@@ -185,17 +135,49 @@ class Owner:
 
         await ctx.send(f"```py\n{result}\n```")
 
+    @commands.command(name="import", hidden=True)
+    @bot.checks.is_owner()
+    async def _import(self, ctx, module_name):
+        title = module_name.title()
+        desc = "Successfully imported!"
+
+        try:
+            globals()[module_name] = importlib.import_module(module_name)
+        except Exception as e:
+            desc = (f"Importing failed\n\n"
+                    f"{type(e).__name__} - {e}")
+
+        await ctx.send(embed=create_embed(title, desc))
+
+    @commands.command(aliases=["mention"], hidden=True)
+    @bot.checks.is_owner()
+    async def ping(self, ctx, name, *, message=None):
+        name = name.lower()
+        message = message or "DJ wants you for a sec"
+        members = {
+            "reborn": self.bot.get_user(429605988530782208)
+        }
+
+        try:
+            member = members[name]
+        except KeyError:
+            return
+        else:
+            await ctx.send(f"{member.mention} DJ said \"{message}\"")
+
     @commands.command(hidden=True)
     @bot.checks.is_owner()
     async def reboot(self, ctx, *args):
-        if "--no-embed" not in args:
-            await ctx.send(embed=embed("Rebooting...",
-                                       "This may take a while."))
-        else:
-            await ctx.send("`Rebooting...\nThis may take a while.`")
+        title = "Rebooting..."
+        desc = "This may take a while."
 
-        await self.bot.log(embed=embed("Status", "Offline"), cause="Close",
-                           log=self.bot.logs.status)
+        if "--no-embed" not in args:
+            await ctx.send(embed=create_embed(title, desc))
+        else:
+            await ctx.send(f"`{title}\n{desc}`")
+
+        await self.bot.log(embed=create_embed("Status", "Offline"),
+                           cause=ctx.command.name, log=self.bot.logs.status)
 
         # might vary for other people
         os.execl(sys.executable, sys.executable, self.bot.file)
@@ -203,9 +185,9 @@ class Owner:
     @commands.command(aliases=["exit"], hidden=True)
     @bot.checks.is_owner()
     async def close(self, ctx):
-        await ctx.send(embed=embed(title=None, desc="Shutting down..."))
-        await self.bot.log(embed=embed("Status", "Offline"), cause="Close",
-                           log=self.bot.logs.status)
+        await ctx.send(embed=create_embed(title=None, desc="Shutting down..."))
+        await self.bot.log(embed=create_embed("Status", "Offline"),
+                           cause=ctx.command.name, log=self.bot.logs.status)
 
         await self.bot.logout()
 

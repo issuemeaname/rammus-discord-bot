@@ -5,10 +5,10 @@ from discord.ext import commands
 
 import bot.checks
 from bot.resources import List
-from bot.utils import embed
+from bot.utils import create_embed
 
 
-class Fun:
+class Fun(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
@@ -55,10 +55,10 @@ class Fun:
     @commands.command()
     async def hug(self, ctx, member: discord.Member):
         file = random.choice(List.hugs)
-        embed_ = embed(desc=f":hugging: {ctx.author.mention} hugged "
+        embed = create_embed(desc=f":hugging: {ctx.author.mention} hugged "
                             f"{member.mention}!", image=file)
 
-        await ctx.send(embed=embed_, file=file)
+        await ctx.send(embed=embed, file=file)
 
 
 def setup(bot):

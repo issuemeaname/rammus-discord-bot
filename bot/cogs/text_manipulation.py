@@ -5,10 +5,10 @@ from typing import Union
 from discord.ext import commands
 
 from bot.resources import List
-from bot.utils import embed
+from bot.utils import create_embed
 
 
-class TextManipulation:
+class TextManipulation(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
@@ -17,8 +17,12 @@ class TextManipulation:
         await ctx.send((" ").join(message))
 
     @commands.command()
+    async def reverse(self, ctx, *, message):
+        await ctx.send(("").join(reversed(message)))
+
+    @commands.command()
     async def clap(self, ctx, *, message):
-        await ctx.send((":clap:").join(message))
+        await ctx.send((":clap:").join(message.split(" ")) + ":clap:")
 
     @commands.command()
     async def morse(self, ctx, mode, *, message):
@@ -46,7 +50,7 @@ class TextManipulation:
 
             desc += append
 
-        await ctx.send(embed=embed(title, desc))
+        await ctx.send(embed=create_embed(title, desc))
 
     @commands.command()
     async def caesar(self, ctx, shift: int, *, message):
@@ -72,12 +76,13 @@ class TextManipulation:
 
                     caeser += char
 
-        embed_ = embed(desc=desc)
-        embed_.add_field(name="Original", value=message, inline=False)
-        embed_.add_field(name="Shifted", value=caeser, inline=False)
-        embed_.add_field(name="Shift", value=f"`{shift:,}`", inline=False)
+        fields = {
+            "Original": message,
+            "Shifted": caeser,
+            "Shift": f"`{shift:,}`"
+        }
 
-        await ctx.send(embed=embed_)
+        await ctx.send(embed=create_embed(desc=desc, fields=fields))
 
     @commands.command()
     async def binary(self, ctx, mode, *, message: Union[int, str]):
@@ -101,7 +106,7 @@ class TextManipulation:
 
             desc += append
 
-        await ctx.send(embed=embed(title, desc))
+        await ctx.send(embed=create_embed(title, desc))
 
 
 def setup(bot):
