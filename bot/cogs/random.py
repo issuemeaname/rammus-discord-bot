@@ -4,6 +4,8 @@ from typing import Union
 import discord
 from discord.ext import commands
 
+from bot.resources import List
+from bot.resources import Colours
 from bot.utils import create_embed
 
 
@@ -51,10 +53,28 @@ class Random(commands.Cog):
         elif rolled == 1:
             unlucky = "Yikes..."
 
-        title = f"You rolled a {dice_sides}-sided dice."
-        desc = f"{critted} A {rolled} was rolled! {unlucky}"
+        title = f"You rolled a {dice_sides:,}-sided dice."
+        desc = f"{critted} A {rolled:,} was rolled! {unlucky}"
 
         await ctx.send(embed=create_embed(title, desc))
+
+    @commands.command(name="8ball")
+    async def _8ball(self, ctx, *, question):
+        if question.endswith("?") is False:
+            question += "?"
+        responses = List.responses_8ball
+        response_type = random.choice(list(responses.keys()))
+        colour = (response_type == "Positive" and Colours.GREEN or
+                  response_type == "Vague" and Colours.ORANGE or Colours.RED)
+        response = random.choice(responses.get(response_type).values())
+        fields = {
+            "Question": question,
+            "Type": response_type,
+            "Response": response
+        }
+
+        embed = create_embed(title="8ball", colour=colour, fields=fields)
+        await ctx.send(embed=embed)
 
 
 def setup(bot):

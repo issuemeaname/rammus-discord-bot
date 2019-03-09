@@ -16,81 +16,85 @@ from bot.utils import wrap
 class Owner(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+        self.cog_names = None
+
+    def process_cog_name(self, cog_name):
+        cog_name = cog_name.lower()
+
+        if self.cog_names is None:
+            self.cog_names = self.bot.cogs.copy()
+
+        for cog in self.cog_names:
+            cog = cog.lower()
+
+            if cog.startswith(cog_name):
+                return cog
+        return False
+
+    def reload_extension(self, cog):
+        self.manipulate_cog(cog, unload=True, add_embed=False)
+        self.manipulate_cog(cog, load=True, add_embed=False)
+
+    def manipulate_cog(self, *cog_names, load=False, unload=False,
+                       reload=False, add_embed=True):
+        cog_names = list(cog_names)
+        append = (load and "loaded" or
+                  unload and "unloaded" or
+                  reload and "reloaded")
+        desc = f"Successfully {append}"
+        function = (load and self.bot.load_extension or
+                    unload and self.bot.unload_extension or
+                    reload and self.reload_extension)
+
+        for i, cog_name in enumerate(cog_names):
+            cog_name = self.process_cog_name(cog_name)
+            cog = reload and cog_name or f"bot.cogs.{cog_name}"
+
+            try:
+                function(cog)
+            except Exception as e:
+                desc = (f"Loading failed\n\n"
+                        f"{type(e).__name__}: {e}")
+                break
+            finally:
+                cog_names[i] = cog_name.title()
+
+        title = (", ").join(map(str.title, cog_names))
+
+        # return information dictating succession/otherwise
+        if add_embed:
+            return create_embed(title, desc)
+        return title, desc
 
     @commands.command(hidden=True)
     @bot.checks.delete()
     @bot.checks.is_owner()
     async def load(self, ctx, *cog_names):
-        title = (", ").join(map(str.title, cog_names))
-        desc = "Successfully loaded"
+        embed = self.manipulate_cog(*cog_names, load=True)
 
-        for cog_name in cog_names:
-            cog = f"bot.cogs.{cog_name}"
-
-            try:
-                self.bot.load_extension(cog)
-            except Exception as e:
-                desc = (f"Loading failed\n\n"
-                        f"{type(e).__name__}: {e}")
-                break
-
-        await ctx.send(embed=create_embed(title, desc))
+        await ctx.send(embed=embed)
 
     @commands.command(hidden=True)
     @bot.checks.is_owner()
     @bot.checks.delete()
     async def unload(self, ctx, *cog_names):
-        title = (", ").join(map(str.title, cog_names))
-        desc = "Successfully unloaded"
+        embed = self.manipulate_cog(*cog_names, unload=True)
 
-        for cog_name in cog_names:
-            cog = f"bot.cogs.{cog_name}"
-
-            try:
-                self.bot.unload_extension(cog)
-            except Exception as e:
-                desc = (f"Loading failed\n\n"
-                        f"{type(e).__name__}: {e}")
-                break
-
-        await ctx.send(embed=create_embed(title, desc))
+        await ctx.send(embed=embed)
 
     @commands.command(hidden=True, aliases=["r"])
     @bot.checks.is_owner()
     @bot.checks.delete()
     async def reload(self, ctx, *cog_names):
-        title = (", ").join(map(str.title, cog_names))
-        desc = "Successfully restarted!"
+        embed = self.manipulate_cog(*cog_names, reload=True)
 
-        for i, cog_name in enumerate(cog_names):
-            if cog_name == "all":
-                cog_name = "cogs"
-
-                try:
-                    self.bot.setup()
-                except Exception as e:
-                    desc = (f"Restarting failed\n\n"
-                            f"{type(e).__name__}: {e}")
-                finally:
-                    break
-            else:
-                cog = f"bot.cogs.{cog_name}"
-
-                try:
-                    self.bot.unload_extension(cog)
-                    self.bot.load_extension(cog)
-                except Exception as e:
-                    desc = (f"Restarting failed\n\n"
-                            f"{type(e).__name__}: {e}")
-                    break
-
-        await ctx.send(embed=create_embed(title, desc))
+        await ctx.send(embed=embed)
 
     @commands.command(name="cls", aliases=["clear"], hidden=True)
     @bot.checks.is_owner()
     @bot.checks.delete()
     async def _cls(self, ctx):
-        clear_screen("windows", "Rammus", "\n\n")
+        clear_screen("windows", "Rammus", end="\n\n")
 
     @commands.command(name="dir", hidden=True)
     @bot.checks.is_owner()
@@ -177,7 +181,8 @@ class Owner(commands.Cog):
             await ctx.send(f"`{title}\n{desc}`")
 
         await self.bot.log(embed=create_embed("Status", "Offline"),
-                           cause=ctx.command.name, log=self.bot.logs.status)
+                           cause=ctx.command.name.title(),
+                           log=self.bot.logs.status)
 
         # might vary for other people
         os.execl(sys.executable, sys.executable, self.bot.file)

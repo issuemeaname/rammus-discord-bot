@@ -6,6 +6,7 @@ from discord.ext import commands
 
 import bot.checks
 from bot.db import Mod
+from bot.resources import List
 from bot.utils import create_embed
 
 
@@ -14,6 +15,15 @@ class Moderation(commands.Cog):
         self.bot = bot
         self.DM = self.dm  # alias
 
+    def get_time(self, timestamp: int):
+        date_format = "`%m/%d/%Y @ %I:%M:%S %p`"
+        return datetime.datetime.fromtimestamp(timestamp).strftime(date_format)
+
+    def calculate_perms(self, author, member):
+        roles = author.guild.roles
+
+        return roles.index(author.top_role) > roles.index(member.top_role)
+
     async def dm(self, member: discord.Member, message, reason):
         message += reason and f" for the following: {reason}" or ""
 
@@ -21,10 +31,6 @@ class Moderation(commands.Cog):
             await member.send(message)
         except discord.errors.Forbidden:  # dm failed
             pass
-
-    def get_time(self, timestamp: int):
-        date_format = "`%m/%d/%Y @ %I:%M:%S %p`"
-        return datetime.datetime.fromtimestamp(timestamp).strftime(date_format)
 
     @commands.command(aliases=["admin", "mod"])
     @bot.checks.delete()
@@ -128,6 +134,34 @@ class Moderation(commands.Cog):
     async def clearwarns(self, ctx, member: discord.Member):
         Mod.clear_warns(member)
 
+    @commands.command(aliases=["permissions"])
+    @bot.checks.delete()
+    @commands.has_permissions(administrator=True)
+    async def perms(self, ctx, member: discord.Member = None):
+        member = member or ctx.author
+        perms = member.guild_permissions
+        perm_values = []
+        title = "Permissions"
+        desc = ""
+
+        if ctx.guild.owner.id == member.id:
+            desc += ":white_check_mark: Server owner\n"
+        if perms.administrator:
+            desc += ":white_check_mark: Administrator\n"
+
+        for key in List.permissions:
+            name = key.replace("_", " ").title()
+            has_perm = getattr(perms, key)
+            box = ":x:"
+            perm_values.append(has_perm)
+
+            if has_perm:
+                box = ":white_check_mark:"
+
+            desc += f"{box} {name}\n"
+
+        await ctx.send(embed=create_embed(title, desc, author=member))
+
     @commands.command()
     @bot.checks.delete()
     @commands.has_permissions(kick_members=True)
@@ -156,8 +190,9 @@ class Moderation(commands.Cog):
     @commands.has_permissions(ban_members=True)
     @commands.bot_has_permissions(ban_members=True)
     async def ban(self, ctx, member: discord.Member, *, reason=None):
-        if member.id == ctx.author.id:
-            return
+        title = member.display_name
+        desc = f"{member.mention} was banned"
+        has_higher_roles = self.calculate_perms(ctx.author, member)
         message = (f"You were banned from **{ctx.guild}** by "
                    f"**{str(ctx.author)}**")
         fields = {
@@ -165,16 +200,38 @@ class Moderation(commands.Cog):
             "Moderator": ctx.author.display_name
         }
 
+        if ctx.author.id == member.id:
+            return
+        if has_higher_roles is False:
+            return
+        if ctx.author.guild_permissions.administrator is False:
+            return
+
         if reason is not None:
             fields["Reason"] = reason
 
-        embed = create_embed(member.display_name, f"{member.mention} was "
-                                                  f"banned", fields=fields)
+        embed = create_embed(title, desc, fields=fields)
         await member.ban(reason=reason)
-        await member.unban()
         await ctx.send(embed=embed)
-        await member.send("https://discord.gg/8S3gTxx")
         await self.dm(member, message, reason)
+
+    @commands.command()
+    @bot.checks.delete()
+    @commands.has_permissions(ban_members=True)
+    @commands.bot_has_permissions(ban_members=True)
+    async def unban(self, ctx, user_id: int):
+        bans = await ctx.guild.bans()
+        user_banned = any([user_id == ban.user.id for ban in bans])
+        title = str(user_id)
+        desc = f"No member with ID `{user_id}` has been banned"
+
+        if user_banned:
+            user = self.bot.get_user(user_id)
+            title = user.display_name
+            desc = f"{user.mention} has been unbanned!"
+            await ctx.guild.unban(user)
+
+        await ctx.send(embed=create_embed(title, desc))
 
     @commands.command()
     @bot.checks.delete()
@@ -206,13 +263,19 @@ class Moderation(commands.Cog):
     @bot.checks.delete()
     @commands.has_permissions(administrator=True)
     @commands.bot_has_permissions(manage_nicknames=True)
-    async def nick(self, ctx, member: discord.Member, *, nick):
+    async def nick(self, ctx, member: discord.Member, *, nick=None):
         desc = (f"**{nick}** is too short/long, it must be between 2 - 32 "
                 f"characters long")
 
-        if (len(nick) < 2 or len(nick) > 32) is False:
+        # there may be a better way to go about this, for now this will do
+        if nick is not None and (len(nick) < 2 or len(nick) > 32) is False:
             desc = (f"Successfully changed {member.mention}'s name to "
                     f"**{nick}**!")
+
+            await member.edit(nick=nick)
+        elif nick is None:
+            desc = f"Successfully reset {member.mention}'s name!"
+
             await member.edit(nick=nick)
 
         await ctx.send(embed=create_embed("Nick", desc))

@@ -10,7 +10,6 @@ import discord
 
 
 VERSION = "5.0"
-COLOUR = discord.Colour(0).from_rgb(129, 208, 103)
 FOOTER = "issuemeaname | MIT Copyright © 2018"
 
 INVITE = "https://tinyurl.com/InviteRammus"
@@ -65,6 +64,12 @@ class Path:
     cogs = _get_cogs()
 
 
+class Colours:
+    RED = discord.Colour(0).from_rgb(208, 102, 129)
+    ORANGE = discord.Colour(0).from_rgb(208, 129, 102)
+    GREEN = discord.Colour(0).from_rgb(129, 208, 103)
+
+
 class List:
     new = {}
     hugs = _get_hugs()
@@ -75,6 +80,33 @@ class List:
     statuses = [
         "Facerolling",
         "AP Rammus Nuke"
+    ]
+    permissions = [
+        "add_reactions",
+        "attach_files",
+        "ban_members",
+        "change_nickname",
+        "connect",
+        "create_instant_invite",
+        "deafen_members",
+        "embed_links",
+        "kick_members",
+        "manage_channels",
+        "manage_emojis",
+        "manage_messages",
+        "manage_nicknames",
+        "manage_roles",
+        "manage_webhooks",
+        "mention_everyone",
+        "move_members",
+        "mute_members",
+        "priority_speaker",
+        "read_message_history",
+        "send_messages",
+        "send_tts_messages",
+        "speak",
+        "use_voice_activation",
+        "view_audit_log"
     ]
     digits = {
         "0": "zero",
@@ -87,6 +119,34 @@ class List:
         "7": "seven",
         "8": "eight",
         "9": "nine"
+    }
+    responses_8ball = {
+        "Positive": [
+            "It is certain.",
+            "It is decidedly so.",
+            "Without a doubt.",
+            "Yes - definitely.",
+            "You may rely on it.",
+            "As I see it, yes.",
+            "Most likely.",
+            "Outlook good.",
+            "Yes.",
+            "Signs point to yes."
+        ],
+        "Vague": [
+            "Reply hazy, try again.",
+            "Ask again later.",
+            "Better not tell you now.",
+            "Cannot predict now.",
+            "Concentrate and ask again."
+        ],
+        "Negative": [
+            "Don't count on it.",
+            "My reply is no.",
+            "My sources say no.",
+            "Outlook not so good.",
+            "Very doubtful."
+        ]
     }
     morse = {  # encrypting by default
         " ": "/",

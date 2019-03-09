@@ -8,7 +8,7 @@ from bot.resources import List
 from bot.utils import create_embed
 
 
-class TextManipulation(commands.Cog):
+class TextManipulation(commands.Cog, name="text_manipulation"):
     def __init__(self, bot):
         self.bot = bot
 

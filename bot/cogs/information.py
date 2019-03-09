@@ -46,66 +46,13 @@ class Information(commands.Cog):
     async def prefix(self, ctx):
         await ctx.send(f"You can mention me or use the `{PREFIX}` prefix.")
 
-    @commands.command()
-    async def help(self, ctx, name=None):
+    @commands.command(name="help")
+    async def _help(self, ctx, name):
         """
         Displays information for a particular command, such as parameters,
         instructions, alternate names
         """
-        command = self.command_exists(name)
-        title = ""
-        desc = ""
-        args = None
-
-        # list all commands
-        if name is None:
-            data = {}
-            message = ""
-
-            for command in self.bot.commands:
-                if command.hidden:
-                    continue
-
-                name = command.name
-                cog_name = command.cog_name or "Uncategorised"
-                cog = data.get(cog_name)
-
-                if data.get(cog_name) is None:
-                    data[cog_name] = []
-
-                if name not in cog:
-                    cog.append(name)
-
-            for cog, commands_list in data.items():
-                message += f"{cog}:\n"
-
-                for name in sorted(commands_list):
-                    message += " " * 2 + f"{name}\n"
-
-            for block in wrap(message, type=""):
-                await ctx.send(block)
-
-            return
-        elif command is None or command.hidden:
-            title = "That command does not exist!"
-            desc = "How about trying one that does?"
-        else:
-            title = command.name.capitalize()
-            desc = command.help
-            args = {
-                "Category": command.cog_name,
-                "Parameters": (", ").join(command.clean_params.keys()),
-                "Usage": f"`{command.usage}`",
-                "Aliases": command.aliases or "None"
-            }
-
-        embed = create_embed(title, desc)
-
-        if args is not None:
-            for name, value in args.items():
-                embed.add_field(name=name, value=value, inline=False)
-
-        await ctx.send(embed=embed)
+        pass
 
     @commands.command()
     async def creator(self, ctx):
@@ -167,9 +114,15 @@ class Information(commands.Cog):
             image = member.avatar_url
             roles = [r.mention for r in member.roles
                      if r.is_default() is False]
+            statuses = {
+                discord.Status.online: "Online",
+                discord.Status.dnd: "Busy",
+                discord.Status.idle: "AFK",
+                discord.Status.offline: "Offline"
+            }
             fields = {
                 "ID": f"`{member.id}`",
-                "Status": str(member.status),
+                "Status": statuses[member.status],
                 "Mobile": member.is_on_mobile() and "Yes" or "No",
                 "Joined": member.joined_at.strftime(member_format),
                 "Registered": member.created_at.strftime(member_format),
@@ -193,6 +146,8 @@ class Information(commands.Cog):
                 "Categories": len(guild.categories),
                 "Roles": len(guild.roles) - 1
             }
+        else:
+            return
 
         embed = create_embed(desc=desc)
         embed.set_author(name=author, icon_url=image)

@@ -5,37 +5,41 @@ from typing import Union
 
 import discord
 
-from bot.resources import COLOUR
+from bot.resources import Colours
 from bot.resources import FOOTER
 
 
-def clear_screen(_os, post_message: str = None, end: str = None):
-    _os = _os.lower()
+def clear_screen(system, message: str = None, end: str = None):
+    system = system.lower()
     commands = {
         "windows": "cls",
         "mac": "clear",
         "linux": "clear"
     }
 
-    os.system(commands[_os])
+    os.system(commands[system])
 
-    if post_message:
-        print(post_message, end=end or "\n")
+    if message:
+        print(message, end=end or "\n")
 
 
-def create_embed(title=None, desc=None, fields: dict = None,
-                 image: Union[discord.File, str] = None):
-    embed = discord.Embed(title=title, description=desc, colour=COLOUR)
+def create_embed(title=None, desc=None, colour=Colours.GREEN,
+                 fields: dict = None, image: Union[discord.File, str] = None,
+                 author: discord.Member = None):
+    embed = discord.Embed(title=title, description=desc, colour=colour)
     embed.set_footer(text=FOOTER)
 
     if fields is not None:
         for name, value in fields.items():
             embed.add_field(name=name, value=value, inline=False)
 
-    if type(image) is str:
-        embed.set_image(url=image)
-    elif type(image) is discord.File:
+    if type(image) is discord.File:
         embed.set_image(url=f"attachment://{image.filename}")
+    elif type(image) is str:
+        embed.set_image(url=image)
+
+    if author:
+        embed.set_author(name=str(author), icon_url=author.avatar_url)
 
     return embed
 

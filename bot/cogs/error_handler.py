@@ -4,7 +4,7 @@ from discord.ext import commands
 from bot.utils import create_embed
 
 
-class ErrorHandler(commands.Cog):
+class ErrorHandler(commands.Cog, name="error_handler"):
     def __init__(self, bot):
         self.bot = bot
         self.ignored_errors = [
@@ -14,7 +14,7 @@ class ErrorHandler(commands.Cog):
         ]
 
     def is_ignored(self, error):
-        # ierror: ignored error
+        # ie = Ignored Error
         return any([type(error) is ie for ie in self.ignored_errors])
 
     @commands.Cog.listener()
@@ -29,10 +29,17 @@ class ErrorHandler(commands.Cog):
         if self.is_ignored(error):
             return
 
+        # can be shortened by importing discord.errors and commands.errors
         if isinstance(error, (commands.errors.MissingPermissions,
                               discord.errors.Forbidden)):
             title = "Error"
-            desc = f"`>{ctx.command}` failed due to insufficient permissions."
+            desc = f"`{ctx.command}` failed due to insufficient permissions."
+        elif isinstance(error, (commands.errors.BadArgument,
+                                commands.errors.BadUnionArgument,
+                                commands.errors.MissingRequiredArgument)):
+            help_command = self.bot.get_command("help")
+
+            await ctx.invoke(help_command, ctx.command.name)
         else:
             await self.bot.log(message, error=error)
 
