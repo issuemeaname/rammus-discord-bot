@@ -244,7 +244,8 @@ class Information(commands.Cog):
             aliases = command.aliases and (", ").join(aliases) or "None"
             arguments = [a.title() for a in command.clean_params.keys()]
             arguments = (", ").join(arguments)
-            usage = f"`{command.usage.format(prefix)}`" or "`Not provided`"
+            usage = command.usage.format(prefix) or "`Not provided`"
+            usage = ("\n").join([f"`{u}`" for u in usage.split("\n")])
             fields = {
                 "Aliases": aliases,
                 "Category": command.cog_name.title(),

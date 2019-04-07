@@ -539,7 +539,7 @@ class Moderation(commands.Cog):
     @commands.has_permissions(administrator=True)
     async def joinrole(self, ctx, *roles: commands.Greedy[discord.Role]):
         """
-        Set the given role to be given when a member joins
+        When a member joins, allow the member to receive the given role
 
         Note: You can give multiple roles and this also works without having
         to mention the roles as well, you can type the names of the

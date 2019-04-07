@@ -16,10 +16,10 @@ class AskDatabase:
         if self.db_exists():
             self._db = dict()
 
-            with open(self.path, "w") as f:
+            with open(self.path, "w+") as f:
                 json.dump(self._db, f, indent=4)
         else:
-            with open(self.path, "r") as f:
+            with open(self.path, "r+") as f:
                 self._db = json.load(f)
 
     # function loads pre-init - check if db file exists
@@ -83,7 +83,7 @@ class GuildsDatabase:
             "{server}": "guild.name"
         }
 
-        with open(self.path, "r") as db:
+        with open(self.path, "w+") as db:
             self._db = json.load(db)
 
     def save(self):

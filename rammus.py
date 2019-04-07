@@ -27,18 +27,17 @@ class Rammus(commands.Bot):
         self.setup(pre_clear=True)
 
     async def on_minute(self):
-        self.init_time = int(time.time())
-        passed = 0
+        seconds = 0
 
         while True:
-            uptime = datetime.timedelta(seconds=self.init_time - passed)
+            uptime = datetime.timedelta(seconds=seconds)
             status = random.choice(List.statuses)
             activity = discord.Game(f"{status} | {uptime}s uptime")
 
             await self.change_presence(activity=activity)
             await asyncio.sleep(60)
 
-            passed += 60
+            seconds += 60
 
     # standard methods
     def setup(self, pre_clear=False):
