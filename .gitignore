@@ -106,6 +106,7 @@ venv.bak/
 # Custom / user-inputted
 rammus-testing/
 reference/
+scripts/
 bot/files/
 bot/token.py
 .ico
