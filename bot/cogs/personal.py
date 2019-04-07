@@ -1,6 +1,6 @@
 """
 This is a cog used for personal commands. For now they exist for people I know
-but they will be removed shortly, as they hold no other use to the community
+but they will be removed eventually, as they hold no other use to the community
 or other users of Rammus. Again, this is temporary and will be removed shortly.
 
 Thank you for reading
@@ -184,7 +184,7 @@ class Personal(commands.Cog):
     # kroy
     @commands.command(hidden=True)
     @commands.bot_has_permissions(manage_nicknames=True)
-    @bot.checks.is_member(346115225625296897)
+    @bot.checks.is_member(346115225625296897, 475068807912620042)
     async def kroy(self, ctx):
         if ctx.author.display_name != ctx.author.name:
             try:

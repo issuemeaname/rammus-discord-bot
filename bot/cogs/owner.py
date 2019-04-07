@@ -21,6 +21,8 @@ class Owner(commands.Cog):
     def process_cog_name(self, cog_name):
         cog_name = cog_name.lower()
 
+        # instead of this, iterate over the cogs directory and get all of the
+        # valid cog names, then check if the name matches any of them
         if self.cog_names is None:
             self.cog_names = self.bot.cogs.copy()
 
@@ -31,127 +33,23 @@ class Owner(commands.Cog):
                 return cog
         return False
 
-    def reload_extension(self, cog):
-        self.manipulate_cog(cog, unload=True, add_embed=False)
-        self.manipulate_cog(cog, load=True, add_embed=False)
-
-    def manipulate_cog(self, *cog_names, load=False, unload=False,
-                       reload=False, add_embed=True):
-        cog_names = list(cog_names)
-        append = (load and "loaded" or
-                  unload and "unloaded" or
-                  reload and "reloaded")
-        desc = f"Successfully {append}"
-        function = (load and self.bot.load_extension or
-                    unload and self.bot.unload_extension or
-                    reload and self.reload_extension)
-
-        for i, cog_name in enumerate(cog_names):
-            cog_name = self.process_cog_name(cog_name)
-            cog = reload and cog_name or f"bot.cogs.{cog_name}"
-
-            try:
-                function(cog)
-            except Exception as e:
-                desc = (f"Loading failed\n\n"
-                        f"{type(e).__name__}: {e}")
-                break
-            finally:
-                cog_names[i] = cog_name.title()
-
-        title = (", ").join(map(str.title, cog_names))
-
-        # return information dictating succession/otherwise
-        if add_embed:
-            return create_embed(title, desc)
-        return title, desc
-
-    @commands.command(hidden=True)
-    @bot.checks.delete()
-    @bot.checks.is_owner()
-    async def load(self, ctx, *cog_names):
-        embed = self.manipulate_cog(*cog_names, load=True)
-
-        await ctx.send(embed=embed)
-
-    @commands.command(hidden=True)
+    @commands.command(aliases=["load", "unload", "reload", "r"], hidden=True)
     @bot.checks.is_owner()
     @bot.checks.delete()
-    async def unload(self, ctx, *cog_names):
-        embed = self.manipulate_cog(*cog_names, unload=True)
+    async def manipulate_cog(self, ctx, cog):
+        cog = self.process_cog_name(cog)
+        path = f"bot.cogs.{cog}"
+        name = ctx.invoked_with == "r" and "reload" or ctx.invoked_with
+        functions = {
+            "load": self.bot.load_extension,
+            "unload": self.bot.unload_extension,
+            "reload": self.bot.reload_extension
+        }
+        function = functions.get(name)
+        desc = f"Successfully {name}ed!"
+        function(path)
 
-        await ctx.send(embed=embed)
-
-    @commands.command(hidden=True, aliases=["r"])
-    @bot.checks.is_owner()
-    @bot.checks.delete()
-    async def reload(self, ctx, *cog_names):
-        embed = self.manipulate_cog(*cog_names, reload=True)
-
-        await ctx.send(embed=embed)
-
-    @commands.command(name="cls", aliases=["clear"], hidden=True)
-    @bot.checks.is_owner()
-    @bot.checks.delete()
-    async def _cls(self, ctx):
-        clear_screen("windows", "Rammus", end="\n\n")
-
-    @commands.command(name="dir", hidden=True)
-    @bot.checks.is_owner()
-    async def _dir(self, ctx, *, obj):
-        try:
-            obj = eval(obj)
-        except NameError:
-            attribs = f"That object does not exist"
-        name = obj.__name__
-        attribs = ("\n").join(dir(obj))
-
-        await ctx.send(f"**{name}**")
-
-        for block in wrap(attribs):
-            await ctx.send(block)
-
-    @commands.command(name="eval", hidden=True)
-    @bot.checks.is_owner()
-    async def _eval(self, ctx, *, command):
-        try:
-            result = eval(command)
-        except Exception as e:
-            result = f"{type(e).__name__}: {e}"
-        else:
-            if isinstance(result, collections.Iterable):
-                result = json.dumps(result, indent=4)
-        finally:
-            result = str(result)
-
-        for block in wrap(result):
-            await ctx.send(block)
-
-    @commands.command(name="exec", hidden=True)
-    @bot.checks.is_owner()
-    async def _exec(self, ctx, *, command):
-        try:
-            exec(command)
-        except Exception as e:
-            result = f"Failure\n\n{type(e).__name}: {e}"
-        else:
-            result = "Success"
-
-        await ctx.send(f"```py\n{result}\n```")
-
-    @commands.command(name="import", hidden=True)
-    @bot.checks.is_owner()
-    async def _import(self, ctx, module_name):
-        title = module_name.title()
-        desc = "Successfully imported!"
-
-        try:
-            globals()[module_name] = importlib.import_module(module_name)
-        except Exception as e:
-            desc = (f"Importing failed\n\n"
-                    f"{type(e).__name__} - {e}")
-
-        await ctx.send(embed=create_embed(title, desc))
+        await ctx.send(embed=create_embed(title=cog.title(), desc=desc))
 
     @commands.command(aliases=["mention"], hidden=True)
     @bot.checks.is_owner()
@@ -195,6 +93,69 @@ class Owner(commands.Cog):
                            cause=ctx.command.name, log=self.bot.logs.status)
 
         await self.bot.logout()
+
+    @commands.command(name="cls", aliases=["clear"], hidden=True)
+    @bot.checks.is_owner()
+    @bot.checks.delete()
+    async def _cls(self, ctx):
+        clear_screen("windows", "Rammus", end="\n\n")
+
+    @commands.command(name="dir", hidden=True)
+    @bot.checks.is_owner()
+    async def _dir(self, ctx, *, obj):
+        try:
+            obj = eval(obj)
+        except NameError:
+            attribs = f"That object does not exist"
+        name = obj.__name__
+        attribs = ("\n").join(dir(obj))
+
+        await ctx.send(f"**{name}**")
+
+        for block in wrap(attribs):
+            await ctx.send(block)
+
+    @commands.command(name="eval", hidden=True)
+    @commands.is_owner()
+    async def _eval(self, ctx, *, command):
+        try:
+            result = eval(command)
+        except Exception as e:
+            result = f"{type(e).__name__}: {e}"
+        else:
+            if isinstance(result, collections.Iterable):
+                result = json.dumps(result, indent=4)
+        finally:
+            result = str(result)
+
+        for block in wrap(result):
+            await ctx.send(block)
+
+    @commands.command(name="exec", hidden=True)
+    @commands.is_owner()
+    async def _exec(self, ctx, *, command):
+        try:
+            exec(command)
+        except Exception as e:
+            result = f"Failure\n\n{type(e).__name__}: {e}"
+        else:
+            result = "Success"
+
+        await ctx.send(f"```py\n{result}\n```")
+
+    @commands.command(name="import", hidden=True)
+    @bot.checks.is_owner()
+    async def _import(self, ctx, module_name):
+        title = module_name.title()
+        desc = "Successfully imported!"
+
+        try:
+            globals()[module_name] = importlib.import_module(module_name)
+        except Exception as e:
+            desc = (f"Importing failed\n\n"
+                    f"{type(e).__name__} - {e}")
+
+        await ctx.send(embed=create_embed(title, desc))
 
 
 def setup(bot):

@@ -24,8 +24,6 @@ class DatamuseAPI:
             synonym = entry.get("word")
             synonyms.append(synonym)
 
-        print(type(synonyms), synonyms)
-
         return synonyms and sorted(synonyms) or None
 
 

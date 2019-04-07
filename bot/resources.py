@@ -8,13 +8,12 @@ from string import ascii_lowercase
 
 import discord
 
+from bot.db import Guilds
+from bot.prefix import DEFAULT
 
-VERSION = "5.0"
+
+VERSION = "8.0"
 FOOTER = "issuemeaname | MIT Copyright © 2018"
-
-INVITE = "https://tinyurl.com/InviteRammus"
-SERVER = "https://tinyurl.com/RammusServer"
-GUILD = SERVER  # alias
 
 OWNERS = [173225726139564032, 202373732067442690]  # fill with member IDs
 
@@ -28,6 +27,16 @@ PACER_TEST = ("The FitnessGram™ Pacer Test is a multistage aerobic capacity "
               "possible. The second time you fail to complete a lap before "
               "the sound, your test is over. The test will begin on the word "
               "start. On your mark, get ready, start.")
+
+
+async def command_prefix(bot, message):
+    prefix = DEFAULT
+
+    if message.guild is not None:
+        guild_id = str(message.guild.id)
+        prefix = Guilds.get_prefix(guild_id)
+
+    return [bot.user.mention + " ", prefix]
 
 
 def _get_cogs():
@@ -70,6 +79,15 @@ class Colours:
     GREEN = discord.Colour(0).from_rgb(129, 208, 103)
 
 
+class Service:
+    GITHUB = "https://github.com/issuemeaname/rammus-discord-bot"
+    INVITE = "https://tinyurl.com/InviteRammus"
+    SERVER = "https://tinyurl.com/RammusServer"
+    TRELLO = "https://trello.com/b/yKDNUGdI/rammus-discord-bot"
+
+    GUILD = SERVER  # alias
+
+
 class List:
     new = {}
     hugs = _get_hugs()
@@ -79,7 +97,10 @@ class List:
     ]
     statuses = [
         "Facerolling",
-        "AP Rammus Nuke"
+        "AP Nuke",
+        ">commands",
+        "Ok.",
+        "in Iron IV"
     ]
     permissions = [
         "add_reactions",

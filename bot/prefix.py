@@ -1,1 +1,1 @@
-PREFIX = ">"
+DEFAULT = ">"

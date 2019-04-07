@@ -4,13 +4,15 @@ from discord.ext import commands
 from bot.utils import create_embed
 
 
-class ErrorHandler(commands.Cog, name="error_handler"):
+class ErrorHandler(commands.Cog, name="Error Handler"):
     def __init__(self, bot):
         self.bot = bot
         self.ignored_errors = [
+            discord.errors.Forbidden,
             discord.errors.NotFound,
+            commands.errors.CheckFailure,
             commands.errors.CommandNotFound,
-            commands.errors.CheckFailure
+            commands.errors.NotOwner
         ]
 
     def is_ignored(self, error):
@@ -30,13 +32,15 @@ class ErrorHandler(commands.Cog, name="error_handler"):
             return
 
         # can be shortened by importing discord.errors and commands.errors
-        if isinstance(error, (commands.errors.MissingPermissions,
-                              discord.errors.Forbidden)):
+        if type(error) is commands.errors.MissingRequiredArgument:
+            title = f"Missing argument for `{ctx.command.name}`"
+            desc = f"`{error.param.name.title()}`"
+        elif isinstance(error, (commands.errors.MissingPermissions,
+                                discord.errors.Forbidden)):
             title = "Error"
             desc = f"`{ctx.command}` failed due to insufficient permissions."
         elif isinstance(error, (commands.errors.BadArgument,
-                                commands.errors.BadUnionArgument,
-                                commands.errors.MissingRequiredArgument)):
+                                commands.errors.BadUnionArgument)):
             help_command = self.bot.get_command("help")
 
             await ctx.invoke(help_command, ctx.command.name)

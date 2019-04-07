@@ -6,6 +6,8 @@ import time
 
 import discord
 
+from bot.prefix import DEFAULT
+
 
 class AskDatabase:
     def __init__(self):
@@ -70,10 +72,16 @@ class AskDatabase:
             return True
 
 
-class ModDatabase:
+class GuildsDatabase:
     def __init__(self):
-        self.path = "bot/files/warns.json"
+        self.path = "bot/files/guilds.json"
         self.get_warns = self.get_warnings  # alias
+        self.message_features = {
+            "{member}": None,
+            "{@member}": "mention",
+            "{guild}": "guild.name",
+            "{server}": "guild.name"
+        }
 
         with open(self.path, "r") as db:
             self._db = json.load(db)
@@ -82,9 +90,11 @@ class ModDatabase:
         with open(self.path, "w") as db:
             json.dump(self._db, db, indent=4)
 
+    # getters
     def get_guild(self, guild_id):
         guild_id = str(guild_id)
         default = {
+            "prefix": DEFAULT,
             "mods": [],
             "members": {}
         }
@@ -105,10 +115,39 @@ class ModDatabase:
 
     def get_warnings(self, member: discord.Member):
         member_warnings = self.get_member(member.guild.id, member.id)
-        self.save()
 
         return member_warnings  # return member's list of warnings
 
+    def get_prefix(self, guild_id):
+        guild = self.get_guild(guild_id)
+
+        return guild.setdefault("prefix", DEFAULT)
+
+    def get_messages(self, guild_id):
+        guild = self.get_guild(guild_id)
+        default = {
+            "join": None,
+            "leave": None
+        }
+
+        return guild.setdefault("messages", default)
+
+    def get_channel(self, guild_id):
+        guild = self.get_guild(guild_id)
+        default = None
+
+        return guild.setdefault("channel", default)
+
+    def get_roles(self, guild_id):
+        guild = self.get_guild(guild_id)
+        default = {
+            "join": None,
+            "mods": None
+        }
+
+        return guild.setdefault("roles", default)
+
+    # setters/manipulators
     def add_warn(self, member: discord.Member, moderator: discord.Member,
                  reason):
         member_warnings = self.get_member(member.guild.id, member.id)
@@ -124,33 +163,75 @@ class ModDatabase:
 
     def clear_warns(self, member: discord.Member):
         member_warnings = self.get_member(member.guild.id, member.id)
+        warnings_num = len(member_warnings)
         member_warnings.clear()
         self.save()
 
-        return member_warnings  # return new list of warnings
+        return warnings_num, member_warnings  # return new list of warnings
 
     def add_mod(self, member: discord.Member):
         mods = self.get_mods(member.guild.id)
         mods.append(member.id)
         self.save()
 
-        return mods
+        return mods  # return newly added mod
 
     def del_mod(self, member: discord.Member):
         mods = self.get_mods(member.guild.id)
         mods.remove(member.id)
         self.save()
 
-        return mods
+        return mods  # return deleted mod
+
+    def set_prefix(self, guild_id, prefix):
+        guild = self.get_guild(guild_id)
+        guild["prefix"] = prefix
+        self.save()
+
+        return prefix  # return new prefix
+
+    def get_message(self, guild_id, join=False, leave=False):
+        messages = self.get_messages(guild_id)
+        key = join and "join" or leave and "leave" or None
+
+        if key is not None:
+            return messages.get(key)  # return server's join/leave message
+        return None
+
+    def set_message(self, guild_id, message, join=False, leave=False):
+        messages = self.get_messages(guild_id)
+        key = join and "join" or leave and "leave" or None
+
+        if key is not None:
+            messages[key] = message
+
+        self.save()
+
+        return message  # return new join/leave message
+
+    def set_channel(self, guild_id, channel):
+        guild = self.get_guild(guild_id)
+        guild["channel"] = channel
+        self.save()
+
+        return channel  # return new join/leave message channel
+
+    def set_join_roles(self, guild_id, join_roles):
+        roles = self.get_roles(guild_id)
+        join_roles = [r.id for r in join_roles]
+        roles["join"] = join_roles
+        self.save()
+
+        return join_roles  # return names of new member join roles
 
 
 Ask = AskDatabase()
-Mod = ModDatabase()
+Guilds = GuildsDatabase()
 
 
 @atexit.register
 def save_all():
     Ask.save()
-    Mod.save()
+    Guilds.save()
 
     print("Saved all databases")

@@ -12,51 +12,32 @@ class Fun(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.command()
+    @commands.command(usage="{0}say Hello World")
     @bot.checks.delete()
     async def say(self, ctx, *, message):
+        """
+        Sends the given message as Rammus
+        """
         await ctx.send(message)
 
-    @commands.command()
+    @commands.command(usage="{0}id\n{0}id @DJ#3333")
     async def iq(self, ctx, member: discord.Member = None):
+        """
+        Show the IQ of either yourself or the given person
+        """
         mention = member and member.mention or ctx.author.mention
         iq = random.randint(-263, 263)
 
         await ctx.send(f"{mention} {iq}")
 
-    @commands.command()
-    async def bigtext(self, ctx, *, message):
-        bigtext = ""
-        append = " "
-
-        for i, char in enumerate(message):
-            char = char.lower()
-
-            if i+1 == len(message):
-                append = ""
-
-            if char.isdigit():
-                char = List.digits[char]
-            elif char.isalpha():
-                char = f":regional_indicator_{char}:"
-            elif char == " ":
-                char = char*2
-            else:
-                char = ""
-
-            bigtext += char + append
-
-        await ctx.send(bigtext)
-
-    @commands.command()
-    async def cringe(self, ctx):
-        await ctx.send(random.choice(List.cringe))
-
-    @commands.command()
+    @commands.command(usage="{0}hug")
     async def hug(self, ctx, member: discord.Member):
+        """
+        Send some feel good energy by hugging someone
+        """
+        desc = f":hugging: {ctx.author.mention} hugged {member.mention}!"
         file = random.choice(List.hugs)
-        embed = create_embed(desc=f":hugging: {ctx.author.mention} hugged "
-                            f"{member.mention}!", image=file)
+        embed = create_embed(desc=desc, image=file)
 
         await ctx.send(embed=embed, file=file)
 

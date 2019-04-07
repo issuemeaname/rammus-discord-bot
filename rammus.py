@@ -7,7 +7,8 @@ from collections import namedtuple
 import discord
 from discord.ext import commands
 
-from bot.prefix import PREFIX
+from bot.db import Guilds
+from bot.resources import command_prefix
 from bot.resources import List
 from bot.resources import OWNERS
 from bot.resources import Path
@@ -20,22 +21,24 @@ from bot.utils import get_tb_message
 class Rammus(commands.Bot):
     # magic methods
     def __init__(self):
-        super().__init__(command_prefix=commands.when_mentioned_or(PREFIX))
+        super().__init__(command_prefix=command_prefix)
         self.file = __file__
         self.remove_command("help")
         self.setup(pre_clear=True)
 
     async def on_minute(self):
         self.init_time = int(time.time())
+        passed = 0
 
         while True:
-            current_time = int(time.time())
-            uptime = datetime.timedelta(seconds=current_time - self.init_time)
+            uptime = datetime.timedelta(seconds=self.init_time - passed)
             status = random.choice(List.statuses)
             activity = discord.Game(f"{status} | {uptime}s uptime")
 
             await self.change_presence(activity=activity)
             await asyncio.sleep(60)
+
+            passed += 60
 
     # standard methods
     def setup(self, pre_clear=False):
@@ -66,6 +69,14 @@ class Rammus(commands.Bot):
         self.owner = self.app_info.owner
         self.owners = OWNERS
 
+    @commands.Cog.listener()
+    async def on_guild_join(self, guild):
+        print("Join")
+
+    @commands.Cog.listener()
+    async def on_guild_remove(self, guild):
+        print("Remove")
+
     async def on_ready(self):
         Logs = namedtuple("Logs", ["default", "status", "error"])
         self.init_time = int(time.time())
@@ -78,8 +89,8 @@ class Rammus(commands.Bot):
         self.loop.create_task(self.on_minute())
 
         # visuals
-        clear_screen("windows", post_message=f"{self.user.name}\n")
-        await self.log(embed=create_embed("Status", "Online"),
+        clear_screen("windows", message=f"{self.user.name}\n")
+        await self.log(embed=create_embed(title="Status", desc="Online"),
                        log=self.logs.status)
 
 

@@ -9,7 +9,7 @@ class Community(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.command(usage=">ask question")
+    @commands.command(usage="{0}ask what is 2+2?")
     async def ask(self, ctx, *, question):
         """
         Ask a question and either get an answer if it has been answered before
@@ -53,7 +53,7 @@ class Community(commands.Cog):
 
         await ctx.send(embed=embed)
 
-    @commands.command()
+    @commands.command(usage="{0}answer 1 2+2 is 2")
     @commands.cooldown(rate=1, per=30, type=commands.BucketType.user)
     async def answer(self, ctx, id: int, *, answer):
         """

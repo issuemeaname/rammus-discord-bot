@@ -52,10 +52,13 @@ def get_tb_message(error, newline="\n"):
                                                     f"{error}")
 
 
-def wrap(text, type="py"):
-    wrapper = textwrap.TextWrapper(1992-(len(type)), drop_whitespace=False,
-                                   replace_whitespace=False)
+def wrap(text, type="py", embed=False, no_blocks=False):
+    total = embed and 2048 or 2000
+    block_size = 8
     blocks = []
+    wrapper = textwrap.TextWrapper(total-block_size-(len(type)),
+                                   drop_whitespace=False,
+                                   replace_whitespace=False)
 
     for block in wrapper.wrap(text):
         blocks.append(f"```{type}\n{block}\n```")
