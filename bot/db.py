@@ -16,6 +16,9 @@ class AskDatabase:
         if self.db_exists():
             self._db = dict()
 
+            directory = os.path.dirname(self.path)
+            os.makedirs(directory)
+
             with open(self.path, "w+") as f:
                 json.dump(self._db, f, indent=4)
         else:
@@ -82,6 +85,9 @@ class GuildsDatabase:
             "{guild}": "guild.name",
             "{server}": "guild.name"
         }
+
+        directory = os.path.dirname(self.path)
+        os.makedirs(directory)
 
         with open(self.path, "w+") as db:
             self._db = json.load(db)
