@@ -11,7 +11,7 @@ from bot.prefix import DEFAULT
 
 class AskDatabase:
     def __init__(self):
-        self.path = r"bot/files/ask.json"
+        self.path = r"./bot/files/ask.json"
 
         if self.db_exists():
             self._db = dict()
@@ -19,6 +19,7 @@ class AskDatabase:
             directory = os.path.dirname(self.path)
             os.makedirs(directory)
 
+            print(self.path, directory, os.path.exists(directory), sep="\n")
             with open(self.path, "w+") as f:
                 json.dump(self._db, f, indent=4)
         else:
