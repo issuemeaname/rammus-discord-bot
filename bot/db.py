@@ -78,6 +78,7 @@ class AskDatabase:
 
 class GuildsDatabase:
     def __init__(self):
+        self._db = {}
         self.path = "files/guilds.json"
         self.get_warns = self.get_warnings  # alias
         self.message_features = {
@@ -87,8 +88,12 @@ class GuildsDatabase:
             "{server}": "guild.name"
         }
 
-        with open(self.path, "w+") as db:
-            self._db = json.load(db)
+        if os.path.exists(self.path) is False:
+            with open(self.path, "w+") as db:
+                json.dump(self._db, db, indent=4)
+        else:
+            with open(self.path, "r+") as db:
+                self._db = json.load(db)
 
     def save(self):
         with open(self.path, "w") as db:
