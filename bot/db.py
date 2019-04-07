@@ -11,7 +11,7 @@ from bot.prefix import DEFAULT
 
 class AskDatabase:
     def __init__(self):
-        self.path = r"./bot/files/ask.json"
+        self.path = r"files/ask.json"
 
         if self.db_exists():
             self._db = dict()
@@ -78,7 +78,7 @@ class AskDatabase:
 
 class GuildsDatabase:
     def __init__(self):
-        self.path = "bot/files/guilds.json"
+        self.path = "files/guilds.json"
         self.get_warns = self.get_warnings  # alias
         self.message_features = {
             "{member}": None,
@@ -86,9 +86,6 @@ class GuildsDatabase:
             "{guild}": "guild.name",
             "{server}": "guild.name"
         }
-
-        directory = os.path.dirname(self.path)
-        os.makedirs(directory)
 
         with open(self.path, "w+") as db:
             self._db = json.load(db)
