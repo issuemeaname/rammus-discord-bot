@@ -1,8 +1,8 @@
 # import discord
-# from discord.ext import commands
+from discord.ext import commands
 
 
-class Template:
+class Template(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 

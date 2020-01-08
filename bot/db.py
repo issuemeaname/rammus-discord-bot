@@ -1,4 +1,5 @@
-import atexit
+import aiofiles
+import asyncio
 import datetime
 import json
 import os
@@ -9,36 +10,45 @@ import discord
 from bot.prefix import DEFAULT
 
 
+loop = asyncio.get_event_loop()
+
+
 class AskDatabase:
     def __init__(self):
-        self.path = r"files/ask.json"
+        self.path = r"bot/files/ask.json"
 
+        loop.create_task(self.setup())
+
+    async def setup(self):
         if self.db_exists():
             self._db = dict()
 
-            directory = os.path.dirname(self.path)
-            os.makedirs(directory)
+            async with aiofiles.open(self.path, "w") as db:
+                dump = json.dumps(self._db, indent=4)
 
-            print(self.path, directory, os.path.exists(directory), sep="\n")
-            with open(self.path, "w+") as f:
-                json.dump(self._db, f, indent=4)
+                await db.write(dump)
         else:
-            with open(self.path, "r+") as f:
-                self._db = json.load(f)
+            async with aiofiles.open(self.path, "r") as db:
+                data = await db.read()
+
+                self._db = json.loads(data)
+
+    async def save(self):
+        async with aiofiles.open(self.path, "w") as db:
+            dump = json.dumps(self._db, indent=4)
+
+            await db.write(dump)
 
     # function loads pre-init - check if db file exists
     def db_exists(self):
-        return os.path.exists(self.path) is False or \
-               os.path.getsize(self.path) == 0
-
-    def save(self):
-        with open(self.path, "w") as db:
-            json.dump(self._db, db, indent=4)
+        return (os.path.exists(self.path) is False or
+                os.path.getsize(self.path) == 0)
 
     def _get_current_time(self):
         return datetime.datetime.now().strftime("%d %b %Y @ %I:%M %p (GMT)")
 
-    def get_entry(self, question=None, answer=None, id=None):
+    # I 100% believe that there is a better way to do this
+    async def get_entry(self, question=None, answer=None, id=None):
         query = question or answer or str(id)
         query_type = None
 
@@ -56,7 +66,7 @@ class AskDatabase:
                 return entry
         return None
 
-    def create_entry(self, ctx, question):
+    async def create_entry(self, ctx, question):
         id = len(self._db)
         entry = {
             "id": id,  # backwards compatibility & integer id
@@ -64,10 +74,11 @@ class AskDatabase:
             "author_id": ctx.author.id,
             "created_at": self._get_current_time()
         }
+        await self.save()
 
         return self._db.setdefault(str(id), entry)
 
-    def add_answer_to(self, entry, answer):
+    async def add_answer_to(self, entry, answer):
         try:
             entry.setdefault("answer", answer)
         except Exception:
@@ -75,11 +86,13 @@ class AskDatabase:
         else:
             return True
 
+        await self.save()
+
 
 class GuildsDatabase:
     def __init__(self):
         self._db = {}
-        self.path = "files/guilds.json"
+        self.path = "bot/files/guilds.json"
         self.get_warns = self.get_warnings  # alias
         self.message_features = {
             "{member}": None,
@@ -88,19 +101,28 @@ class GuildsDatabase:
             "{server}": "guild.name"
         }
 
-        if os.path.exists(self.path) is False:
-            with open(self.path, "w+") as db:
-                json.dump(self._db, db, indent=4)
-        else:
-            with open(self.path, "r+") as db:
-                self._db = json.load(db)
+        loop.create_task(self.setup())
 
-    def save(self):
-        with open(self.path, "w") as db:
-            json.dump(self._db, db, indent=4)
+    async def setup(self):
+        if os.path.exists(self.path) is False:
+            async with aiofiles.open(self.path, "w") as db:
+                dump = json.dumps(self._db, indent=4)
+
+                await db.write(dump)
+        else:
+            async with aiofiles.open(self.path, "r") as db:
+                data = await db.read()
+
+                self._db = json.loads(data)
+
+    async def save(self):
+        async with aiofiles.open(self.path, "w") as db:
+            dump = json.dumps(self._db, indent=4)
+
+            await db.write(dump)
 
     # getters
-    def get_guild(self, guild_id):
+    async def get_guild(self, guild_id):
         guild_id = str(guild_id)
         default = {
             "prefix": DEFAULT,
@@ -110,30 +132,30 @@ class GuildsDatabase:
 
         return self._db.setdefault(guild_id, default)
 
-    def get_member(self, guild_id, member_id):
+    async def get_member(self, guild_id, member_id):
         member_id = str(member_id)
-        guild = self.get_guild(member_id)
+        guild = await self.get_guild(member_id)
         members = guild.get("members")
 
         return members.setdefault(member_id, [])
 
-    def get_mods(self, guild_id):
-        guild = self.get_guild(guild_id)
+    async def get_mods(self, guild_id):
+        guild = await self.get_guild(guild_id)
 
         return guild.get("mods")
 
-    def get_warnings(self, member: discord.Member):
-        member_warnings = self.get_member(member.guild.id, member.id)
+    async def get_warnings(self, member: discord.Member):
+        member_warnings = await self.get_member(member.guild.id, member.id)
 
         return member_warnings  # return member's list of warnings
 
-    def get_prefix(self, guild_id):
-        guild = self.get_guild(guild_id)
+    async def get_prefix(self, guild_id):
+        guild = await self.get_guild(guild_id)
 
         return guild.setdefault("prefix", DEFAULT)
 
-    def get_messages(self, guild_id):
-        guild = self.get_guild(guild_id)
+    async def get_messages(self, guild_id):
+        guild = await self.get_guild(guild_id)
         default = {
             "join": None,
             "leave": None
@@ -141,14 +163,14 @@ class GuildsDatabase:
 
         return guild.setdefault("messages", default)
 
-    def get_channel(self, guild_id):
-        guild = self.get_guild(guild_id)
+    async def get_channel(self, guild_id):
+        guild = await self.get_guild(guild_id)
         default = None
 
         return guild.setdefault("channel", default)
 
-    def get_roles(self, guild_id):
-        guild = self.get_guild(guild_id)
+    async def get_roles(self, guild_id):
+        guild = await self.get_guild(guild_id)
         default = {
             "join": None,
             "mods": None
@@ -157,90 +179,86 @@ class GuildsDatabase:
         return guild.setdefault("roles", default)
 
     # setters/manipulators
-    def add_warn(self, member: discord.Member, moderator: discord.Member,
-                 reason):
-        member_warnings = self.get_member(member.guild.id, member.id)
+    async def add_warn(self, member: discord.Member, moderator: discord.Member,
+                       reason):
+        member_warnings = await self.get_member(member.guild.id, member.id)
         warning = {
             "moderator": moderator.id,
             "reason": reason,
             "created": int(time.time())
         }
         member_warnings.append(warning)
-        self.save()
+        await self.save()
 
         return warning  # return issued warning
 
-    def clear_warns(self, member: discord.Member):
-        member_warnings = self.get_member(member.guild.id, member.id)
+    async def clear_warns(self, member: discord.Member):
+        member_warnings = await self.get_member(member.guild.id, member.id)
         warnings_num = len(member_warnings)
         member_warnings.clear()
-        self.save()
+        await self.save()
 
         return warnings_num, member_warnings  # return new list of warnings
 
-    def add_mod(self, member: discord.Member):
-        mods = self.get_mods(member.guild.id)
+    async def add_mod(self, member: discord.Member):
+        mods = await self.get_mods(member.guild.id)
         mods.append(member.id)
-        self.save()
+        await self.save()
 
         return mods  # return newly added mod
 
-    def del_mod(self, member: discord.Member):
-        mods = self.get_mods(member.guild.id)
+    async def del_mod(self, member: discord.Member):
+        mods = await self.get_mods(member.guild.id)
         mods.remove(member.id)
-        self.save()
+        await self.save()
 
         return mods  # return deleted mod
 
-    def set_prefix(self, guild_id, prefix):
-        guild = self.get_guild(guild_id)
+    async def set_prefix(self, guild_id, prefix):
+        guild = await self.get_guild(guild_id)
         guild["prefix"] = prefix
-        self.save()
+        await self.save()
 
         return prefix  # return new prefix
 
-    def get_message(self, guild_id, join=False, leave=False):
-        messages = self.get_messages(guild_id)
-        key = join and "join" or leave and "leave" or None
+    async def get_message(self, guild_id, mtype):
+        messages = await self.get_messages(guild_id)
+        await self.save()
 
-        if key is not None:
-            return messages.get(key)  # return server's join/leave message
-        return None
+        return messages.get(mtype)  # return server's join/leave message
 
-    def set_message(self, guild_id, message, join=False, leave=False):
-        messages = self.get_messages(guild_id)
-        key = join and "join" or leave and "leave" or None
-
-        if key is not None:
-            messages[key] = message
-
-        self.save()
+    async def set_message(self, guild_id, message, mtype):
+        messages = await self.get_messages(guild_id)
+        messages[mtype] = message
+        await self.save()
 
         return message  # return new join/leave message
 
-    def set_channel(self, guild_id, channel):
-        guild = self.get_guild(guild_id)
+    async def set_channel(self, guild_id, channel):
+        guild = await self.get_guild(guild_id)
         guild["channel"] = channel
-        self.save()
+        await self.save()
 
         return channel  # return new join/leave message channel
 
-    def set_join_roles(self, guild_id, join_roles):
-        roles = self.get_roles(guild_id)
-        join_roles = [r.id for r in join_roles]
+    async def set_join_roles(self, guild_id, join_roles):
+        roles = await self.get_roles(guild_id)
+        join_roles = [r.id for r in join_roles if type(r) is discord.Role]
         roles["join"] = join_roles
-        self.save()
+        await self.save()
 
         return join_roles  # return names of new member join roles
+
+
+async def _log_error(error):
+    async with asyncio.open("log.txt", "w") as f:
+        await f.write(error)
 
 
 Ask = AskDatabase()
 Guilds = GuildsDatabase()
 
 
-@atexit.register
-def save_all():
-    Ask.save()
-    Guilds.save()
-
-    print("Saved all databases")
+async def save_all_dbs():
+    await Ask.save()
+    await Guilds.save()

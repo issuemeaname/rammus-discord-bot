@@ -5,7 +5,7 @@ from discord.ext import commands
 
 import bot.checks
 from bot.resources import List
-from bot.utils import create_embed
+from bot.utils import send_with_embed
 
 
 class Fun(commands.Cog):
@@ -37,9 +37,8 @@ class Fun(commands.Cog):
         """
         desc = f":hugging: {ctx.author.mention} hugged {member.mention}!"
         file = random.choice(List.hugs)
-        embed = create_embed(desc=desc, image=file)
 
-        await ctx.send(embed=embed, file=file)
+        await send_with_embed(ctx, desc=desc, image=file)
 
 
 def setup(bot):

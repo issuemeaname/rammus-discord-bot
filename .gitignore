@@ -104,7 +104,6 @@ venv.bak/
 .mypy_cache/
 
 # Custom / user-inputted
-rammus-testing/
 reference/
 scripts/
 bot/files/

@@ -1,18 +1,18 @@
 import discord
 from discord.ext import commands
 
-from bot.utils import create_embed
+from bot.utils import send_with_embed
 
 
 class ErrorHandler(commands.Cog, name="Error Handler"):
     def __init__(self, bot):
         self.bot = bot
         self.ignored_errors = [
-            discord.errors.Forbidden,
-            discord.errors.NotFound,
-            commands.errors.CheckFailure,
-            commands.errors.CommandNotFound,
-            commands.errors.NotOwner
+            commands.CheckFailure,
+            commands.CommandNotFound,
+            commands.NotOwner,
+            discord.Forbidden,
+            discord.NotFound
         ]
 
     def is_ignored(self, error):
@@ -21,37 +21,33 @@ class ErrorHandler(commands.Cog, name="Error Handler"):
 
     @commands.Cog.listener()
     async def on_command_error(self, ctx, error):
-        message = ctx.message.content
-        title = None
-        desc = None
-        embed = None
+        title = desc = ""
+        fields = {}
 
-        if type(error) is commands.errors.CommandInvokeError:
+        if isinstance(error, commands.CommandInvokeError):
             error = error.original
         if self.is_ignored(error):
             return
 
-        # can be shortened by importing discord.errors and commands.errors
-        if type(error) is commands.errors.MissingRequiredArgument:
-            title = f"Missing argument for `{ctx.command.name}`"
+        if isinstance(error, (commands.MissingRequiredArgument)):
+            title = f"Missing argument for `{ctx.invoked_with}`"
             desc = f"`{error.param.name.title()}`"
-        elif isinstance(error, (commands.errors.MissingPermissions,
-                                discord.errors.Forbidden)):
+        elif isinstance(error, (commands.MissingPermissions,
+                                discord.Forbidden)):
             title = "Error"
-            desc = f"`{ctx.command}` failed due to insufficient permissions."
-        elif isinstance(error, (commands.errors.BadArgument,
-                                commands.errors.BadUnionArgument)):
+            desc = (f"`{ctx.command.name.title()}` failed due to insufficient "
+                    f"permissions.")
+            fields = {
+                "Missing Permissions": error.missing_perms
+            }
+        elif isinstance(error, (commands.BadArgument,
+                                commands.BadUnionArgument)):
             help_command = self.bot.get_command("help")
 
-            await ctx.invoke(help_command, ctx.command.name)
+            return await ctx.invoke(help_command, ctx.command.name)
         else:
-            await self.bot.log(message, error=error)
-
-        if None not in [title, desc]:
-            embed = create_embed(title, desc)
-
-        if embed is not None:
-            await ctx.send(embed=embed)
+            return await self.bot.log(ctx.message.content, error=error)
+        return await send_with_embed(ctx, title, desc, fields=fields)
 
 
 def setup(bot):

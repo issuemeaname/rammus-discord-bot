@@ -13,7 +13,12 @@ from bot.prefix import DEFAULT
 
 
 VERSION = "8.0"
-FOOTER = "issuemeaname | MIT Copyright © 2018"
+PERMISSIONS = discord.Permissions()
+BLACKLIST = [202373732067442690]
+PERMISSIONS_KWARGS = {
+    "administrator": True
+}
+PERMISSIONS.update(**PERMISSIONS_KWARGS)
 
 OWNERS = [173225726139564032, 202373732067442690]  # fill with member IDs
 
@@ -29,31 +34,22 @@ PACER_TEST = ("The FitnessGram™ Pacer Test is a multistage aerobic capacity "
               "start. On your mark, get ready, start.")
 
 
-async def command_prefix(bot, message):
-    prefix = DEFAULT
-
-    if message.guild is not None:
-        guild_id = str(message.guild.id)
-        prefix = Guilds.get_prefix(guild_id)
-
-    return [bot.user.mention + " ", prefix]
-
-
-def _get_cogs():
-    path = r"bot/cogs"
-    cog_path = "bot.cogs"
+def _get_cogs(path=r"bot\cogs"):
+    cog_path = path.replace("\\", ".")
     cogs = []
 
     for obj in os.listdir(path):
-        origin = os.path.join(os.getcwd(), path, obj)
+        if obj.startswith("_"):
+            continue
+        origin = os.path.join(path, obj)
 
         if os.path.isfile(origin):
             obj = os.path.splitext(obj)[0]
+            obj_path = f"{cog_path}.{obj}"
 
-            if obj.startswith("_") is False:
-                obj_path = (".").join([cog_path, obj])
-
-                cogs.append(obj_path)
+            cogs.append(obj_path)
+        elif os.path.isdir(origin):
+            cogs += _get_cogs(origin)
     return sorted(cogs) or None
 
 
@@ -68,6 +64,16 @@ def _get_hugs():
     return hugs or None
 
 
+async def command_prefix(bot, message):
+    prefix = DEFAULT
+
+    if message.guild is not None:
+        guild_id = str(message.guild.id)
+        prefix = await Guilds.get_prefix(guild_id)
+
+    return [bot.user.mention + " ", prefix]
+
+
 class Path:
     root = "bot"
     cogs = _get_cogs()
@@ -77,15 +83,6 @@ class Colours:
     RED = discord.Colour(0).from_rgb(208, 102, 129)
     ORANGE = discord.Colour(0).from_rgb(208, 129, 102)
     GREEN = discord.Colour(0).from_rgb(129, 208, 103)
-
-
-class Service:
-    GITHUB = "https://github.com/issuemeaname/rammus-discord-bot"
-    INVITE = "https://tinyurl.com/InviteRammus"
-    SERVER = "https://tinyurl.com/RammusServer"
-    TRELLO = "https://trello.com/b/yKDNUGdI/rammus-discord-bot"
-
-    GUILD = SERVER  # alias
 
 
 class List:
@@ -101,6 +98,21 @@ class List:
         ">commands",
         "Ok.",
         "in Iron IV"
+    ]
+    delays = [
+        5,
+        10,
+        15,
+        30,
+        60,
+        120,
+        300,
+        600,
+        900,
+        1800,
+        3600,
+        7200,
+        21600
     ]
     permissions = [
         "add_reactions",

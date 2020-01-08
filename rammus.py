@@ -1,13 +1,16 @@
-import asyncio
 import datetime
+import os
 import random
+import signal
 import time
 from collections import namedtuple
 
 import discord
 from discord.ext import commands
+from discord.ext import tasks
 
-from bot.db import Guilds
+from bot.db import save_all_dbs
+from bot.resources import BLACKLIST
 from bot.resources import command_prefix
 from bot.resources import List
 from bot.resources import OWNERS
@@ -23,74 +26,100 @@ class Rammus(commands.Bot):
     def __init__(self):
         super().__init__(command_prefix=command_prefix)
         self.file = __file__
+        self.seconds = 0
+        self.ready = False
         self.remove_command("help")
-        self.setup(pre_clear=True)
 
-    async def on_minute(self):
-        seconds = 0
-
-        while True:
-            uptime = datetime.timedelta(seconds=seconds)
-            status = random.choice(List.statuses)
-            activity = discord.Game(f"{status} | {uptime}s uptime")
-
-            await self.change_presence(activity=activity)
-            await asyncio.sleep(60)
-
-            seconds += 60
+        self.Log = namedtuple("Logs", ["default", "status", "error"])
+        clear_screen("windows", message="Rammus\n")
+        print("Connecting...")
 
     # standard methods
-    def setup(self, pre_clear=False):
-        if pre_clear:
-            clear_screen("windows")
-
+    def setup(self):
         for cog in Path.cogs:
             self.load_extension(cog)
 
-            print("Loaded", cog)
+            print(f"Loading {cog}")
+
+    async def get_self(self, ctx):
+        return await ctx.guild.fetch_member(self.user.id)
 
     async def log(self, message=None, cause=None, log=None, error=None,
                   embed=None):
-        log = log or self.logs.default
+        log = log is not None and log or self.logs.default
 
         if error:
             log = self.logs.error
-            message = f"```py\n{message}\n\n{get_tb_message(error)}\n```"
+            message = (f"```py\n"
+                       f"{message}\n\n"
+
+                       f"{get_tb_message(error)}\n"
+                       f"```")
 
         if cause and embed:
             embed.add_field(name="Cause", value=f"`{cause}`")
 
         await log.send(message, embed=embed)
 
-    # discord event methods
+    # background tasks
+    @tasks.loop(minutes=1.0)
+    async def on_minute(self):
+        uptime = datetime.timedelta(seconds=self.seconds)
+        status = random.choice(List.statuses)
+        activity = discord.Game(f"{status} | {uptime}s uptime")
+        self.seconds += 60
+
+        await self.change_presence(activity=activity)
+
+    # discord.py core methods
+    async def close(self, ctx):
+        await save_all_dbs()
+
+        if ctx.command.name == "close":
+            os.kill(os.getppid(), signal.SIGTERM)
+        await super().close()
+
+    # discord.py event methods
     async def on_connect(self):
         self.app_info = await self.application_info()
         self.owner = self.app_info.owner
         self.owners = OWNERS
 
-    @commands.Cog.listener()
-    async def on_guild_join(self, guild):
-        print("Join")
+        print("Connection established...")
 
-    @commands.Cog.listener()
-    async def on_guild_remove(self, guild):
-        print("Remove")
+    async def on_message(self, message):
+        if message.author.id in BLACKLIST:
+            return True
+
+        self.process_commands(message)
 
     async def on_ready(self):
-        Logs = namedtuple("Logs", ["default", "status", "error"])
+        # debounce
+        if self.ready:
+            return self.ready
+
+        self.ready = True
+
+        # setup
+        #   offline
+        print("Setting up...")
+        self.setup()
+
+        #   online
         self.init_time = int(time.time())
         self.guild = self.get_guild(464446709146320897)
-        self.logs = Logs(default=self.get_channel(530005984891109386),
-                         status=self.get_channel(464446775135174656),
-                         error=self.get_channel(530001923399483413))
+        self.logs = self.Log(default=self.get_channel(530005984891109386),
+                             status=self.get_channel(464446775135174656),
+                             error=self.get_channel(530001923399483413))
 
-        # setup loops
-        self.loop.create_task(self.on_minute())
+        # background tasks
+        self.on_minute.start()
 
-        # visuals
-        clear_screen("windows", message=f"{self.user.name}\n")
+        # uptime report
+        print("Setup complete...")
         await self.log(embed=create_embed(title="Status", desc="Online"),
                        log=self.logs.status)
+        print("Running...")
 
 
 bot = Rammus()
@@ -107,4 +136,7 @@ async def pre_command(ctx):
     return False
 
 if __name__ == "__main__":
-    bot.run(TOKEN, reconnect=True)
+    try:
+        bot.loop.run_until_complete(bot.start(TOKEN, reconnect=True))
+    except Exception:
+        bot.loop.run_until_complete(bot.close())

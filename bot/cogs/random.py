@@ -13,6 +13,17 @@ class Random(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
+    @commands.command(usage="{0}coinflip")
+    async def coinflip(self, ctx):
+        """
+        Flips a coin and announces the winning side
+        """
+        sides = ["Heads", "Tails"]
+        title = "Coinflip"
+        desc = f"{random.choice(sides)} wins!"
+
+        await ctx.send(embed=create_embed(title, desc))
+
     @commands.command(usage="{0}pick Chimchar Turtwig Piplup")
     async def pick(self, ctx, *options):
         """
@@ -46,6 +57,33 @@ class Random(commands.Cog):
                 randomcase += char
 
         await ctx.send(randomcase, file=file)
+
+    @commands.command(usage="{0}randomfont ooga booga")
+    async def randomfont(self, ctx, *, message):
+        """
+        Randomises the format of the message
+        """
+        randomfont = ""
+        fonts = [
+            "*",
+            "**",
+            "***",
+            "__",
+            "~~",
+            "`"
+        ]
+
+        for word in message.split(" "):
+            chance = int(random.random() * 100)
+
+            if chance <= 80:
+                font = random.choice(fonts)
+                word = font + word + font
+
+            randomfont += word + " "
+
+        print(randomfont)
+        await ctx.send(embed=create_embed(title="Randomfont", desc=randomfont))
 
     @commands.command(usage="{0}roll 20\n{0}roll")
     async def roll(self, ctx, dice_sides: Union[int, float] = 6):

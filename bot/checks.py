@@ -1,4 +1,3 @@
-import discord
 from discord.ext import commands
 
 from bot.resources import OWNERS
@@ -22,13 +21,14 @@ def is_member(*members):
     return commands.check(predicate)
 
 
-def in_guild(*guilds):
+def in_guild(guild_id):
     def predicate(ctx):
         """
         Check if the person invoking the command, also known as the author,
         is the member given (ID verification)
         """
-        return ctx.guild.id in guilds
+        print(">>> in_guild", ctx.guild.id == guild_id)
+        return ctx.guild.id == guild_id
     return commands.check(predicate)
 
 
@@ -41,14 +41,17 @@ def is_owner():
     return commands.check(predicate)
 
 
-def both_have_perms(**kwargs):
+def mod_command():
     def predicate(ctx):
-        ctx.author.permissions_in(ctx.channel) \
-           and commands.bot_has_permissions(**kwargs)
+        return commands.has_permissions(administrator=True)
     return commands.check(predicate)
 
 
-def mod_command():
-    def predicate(_):
-        return commands.has_permissions(administrator=True)
+def is_guild_owner():
+    def predicate(ctx):
+        """
+        Verifies if the person invoking the command is the owner of the server
+        the command is used in
+        """
+        return ctx.author == ctx.guild.owner
     return commands.check(predicate)

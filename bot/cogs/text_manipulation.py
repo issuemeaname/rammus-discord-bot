@@ -1,7 +1,8 @@
+import re
 import string
 from typing import Union
 
-# import discord
+import discord
 from discord.ext import commands
 
 from bot.resources import List
@@ -17,7 +18,22 @@ class TextManipulation(commands.Cog, name="Text Manipulation"):
         """
         Splits the message up by adding spaces between every character
         """
-        await ctx.send((" ").join(message))
+        # pre = "" and post = "" in 1 same line
+        pre = post = ""
+
+        if message.endswith(" -i"):
+            message = message.replace(" -i", "")
+            pre = post = "*"
+        elif message.endswith(" -b"):
+            message = message.replace(" -b", "")
+            pre = post = "**"
+        elif message.endswith(" -bi"):
+            message = message.replace(" -bi", "")
+            pre = post = "***"
+
+        message = (" ").join(message)
+
+        await ctx.send(pre + message + post)
 
     @commands.command(usage="{0}reverse race car")
     async def reverse(self, ctx, *, message):
@@ -31,6 +47,8 @@ class TextManipulation(commands.Cog, name="Text Manipulation"):
         """
         Separates each character in the message with :clap:
         """
+        message = re.sub(r"\s+", " ", message)
+
         await ctx.send((":clap:").join(message.split(" ")) + ":clap:")
 
     @commands.command(usage="{0}bigtext We need to build a wall")
@@ -52,7 +70,7 @@ class TextManipulation(commands.Cog, name="Text Manipulation"):
             elif char.isalpha():
                 char = f":regional_indicator_{char}:"
             elif char == " ":
-                char = char*2
+                char *= 2
             else:
                 char = ""
 
@@ -166,6 +184,15 @@ class TextManipulation(commands.Cog, name="Text Manipulation"):
             desc += append
 
         await ctx.send(embed=create_embed(title, desc))
+
+    @commands.command(usage="{0}unspoiler 577096979067174912\n"
+                            "{0}unspoiler @DJ#3333")
+    async def unspoiler(self, ctx, message: discord.Message):
+        """
+        Remove all spoilers from a message
+        """
+        await ctx.send(message.content.replace("||", ""),
+                       author=message.author)
 
 
 def setup(bot):

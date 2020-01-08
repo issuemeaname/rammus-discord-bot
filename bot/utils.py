@@ -1,3 +1,4 @@
+import datetime
 import os
 import textwrap
 import traceback
@@ -6,7 +7,7 @@ from typing import Union
 import discord
 
 from bot.resources import Colours
-from bot.resources import FOOTER
+from bot.resources import PERMISSIONS
 
 
 def clear_screen(system, message: str = None, end: str = None):
@@ -23,20 +24,28 @@ def clear_screen(system, message: str = None, end: str = None):
         print(message, end=end or "\n")
 
 
-def create_embed(title=None, desc=None, colour=Colours.GREEN,
-                 fields: dict = None, image: Union[discord.File, str] = None,
-                 author: discord.Member = None):
-    embed = discord.Embed(title=title, description=desc, colour=colour)
-    embed.set_footer(text=FOOTER)
+def get_license():
+    return f"issuemeaname | MIT Copyright © {datetime.datetime.now().year}"
 
-    if fields is not None:
-        for name, value in fields.items():
-            embed.add_field(name=name, value=value, inline=False)
+
+def create_embed(title=None, desc=None, inline=False, colour=Colours.GREEN,
+                 fields: dict = {}, author: discord.Member = None,
+                 image: Union[discord.File, discord.Asset] = "",
+                 thumbnail: Union[discord.File, discord.Asset] = ""):
+    footer = get_license()
+    embed = discord.Embed(title=title, description=desc, colour=colour)
+    embed.set_footer(text=footer)
+
+    for name, value in fields.items():
+        embed.add_field(name=name, value=value, inline=inline)
 
     if type(image) is discord.File:
-        embed.set_image(url=f"attachment://{image.filename}")
-    elif type(image) is str:
-        embed.set_image(url=image)
+        image = f"attachment://{image.filename}"
+    if type(thumbnail) is discord.File:
+        thumbnail = f"attachment://{image.filename}"
+
+    embed.set_image(url=image)
+    embed.set_thumbnail(url=thumbnail)
 
     if author:
         embed.set_author(name=str(author), icon_url=author.avatar_url)
@@ -64,3 +73,11 @@ def wrap(text, type="py", embed=False, no_blocks=False):
         blocks.append(f"```{type}\n{block}\n```")
 
     return blocks
+
+
+def generate_invite_url(bot):
+    return discord.utils.oauth_url(bot.user.id, PERMISSIONS)
+
+
+async def send_with_embed(ctx, *args, **kwargs):
+    return await ctx.send(embed=create_embed(*args, **kwargs))
